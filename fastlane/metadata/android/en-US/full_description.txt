@@ -1,0 +1,3 @@
+Android cycling computer with offline maps and navigation for Chile (especially Santiago). Connects e-bike controllers and reads their codes, heart-rate monitors, speed/cadence and power sensors; controls any music player; records rides; works as a launcher. Android 5.0+. Maps are installed separately (see README). No ads, no trackers. (Interface in Spanish.)
+
+Developed by Javiera Navarrete.

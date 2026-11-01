@@ -1,0 +1,2488 @@
+/* =============================================================================
+   A DECE OASIS O260T — Ciclocomputador Real Negative LCD
+   DSEG7 / DSEG14 Segments · Ghost Segments · 100% Métrico · Sin Scroll en Manillar
+   ============================================================================= */
+
+@font-face {
+  font-family: 'DSEG7';
+  src: url('../vendor/fonts/DSEG7Classic-BoldItalic.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DSEG7';
+  src: url('../vendor/fonts/DSEG7Classic-BoldItalic.woff2') format('woff2');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DSEG7-Upright';
+  src: url('../vendor/fonts/DSEG7Classic-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DSEG14';
+  src: url('../vendor/fonts/DSEG14Classic-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --lcd-body-bg: #000000;
+  --lcd-glass-bg: #03080b;
+  --lcd-housing-bg: #080d11;
+  --lcd-bezel-border: rgba(0, 240, 255, 0.22);
+  --lcd-groove: rgba(0, 0, 0, 0.90);
+
+  --lcd-cyan: #00F0FF;
+  --lcd-cyan-glow: rgba(0, 240, 255, 0.45);
+  --lcd-ghost: rgba(0, 240, 255, 0.08);
+
+  --lcd-white: #FFFFFF;
+  --lcd-silk: #7a9fa8;
+  --lcd-silk-dim: #45616b;
+  --lcd-amber: #FFB300;
+  --lcd-red: #FF3344;
+  --lcd-green: #00E676;
+
+  --font-seg: 'DSEG7-Italic', 'DSEG7', monospace;
+  --font-seg-up: 'DSEG7', monospace;
+  --font-alpha: 'DSEG14', monospace;
+  --font-silk: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+body {
+  background-color: var(--lcd-body-bg);
+  color: var(--lcd-white);
+  font-family: var(--font-silk);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+}
+
+/* =============================================================================
+   Estructura General y Contenedor
+   ============================================================================= */
+#app-container {
+  height: calc(100vh - 60px);
+  width: 100%;
+  overflow-y: hidden; /* Cero scroll en el modo ciclocomputador */
+  overflow-x: hidden;
+  padding: 6px 8px 4px 8px;
+  position: relative;
+}
+
+.tab-pane {
+  display: none;
+  height: 100%;
+  width: 100%;
+}
+
+.tab-pane.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tabs secundarias con scroll */
+#tab-sensors, #tab-history, #tab-settings {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 24px;
+}
+
+/* =============================================================================
+   Top Hardware Status Bar
+   ============================================================================= */
+.lcd-top-bar {
+  background: var(--lcd-housing-bg);
+  border: 1px solid var(--lcd-bezel-border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 2px rgba(0,240,255,0.06);
+}
+
+.lcd-brand {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: var(--lcd-cyan);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-shadow: 0 0 6px var(--lcd-cyan-glow);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.lcd-status-indicators {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.indicator-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--lcd-silk);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.indicator-item.cyan-tint { color: var(--lcd-cyan); }
+.indicator-item.amber-tint { color: var(--lcd-amber); }
+
+/* Espacios fijos reservados para evitar desplazamientos por variación de caracteres */
+.indicator-item.item-phone-bat {
+  min-width: 36px;
+  justify-content: flex-end;
+}
+
+.indicator-item.item-ebike-bat {
+  min-width: 36px;
+  justify-content: flex-end;
+}
+
+.indicator-item.item-compass {
+  min-width: 44px;
+  max-width: 44px;
+  justify-content: center;
+}
+
+.indicator-val.compass-val {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.indicator-item.item-weather {
+  min-width: 30px;
+  max-width: 30px;
+  justify-content: flex-end;
+}
+
+.indicator-val.weather-val {
+  display: inline-block;
+  width: 100%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.indicator-item.item-clock {
+  min-width: 36px;
+  max-width: 36px;
+  justify-content: center;
+  margin-right: 4px;
+}
+
+.indicator-val.clock-val {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.indicator-val {
+  letter-spacing: 0.04em;
+}
+
+.font-dseg {
+  font-family: var(--font-seg-up);
+  letter-spacing: 0.05em;
+}
+
+/* =============================================================================
+   PANEL DE INSTRUMENTOS UNIFICADO AUTOMOTRIZ (UNA SOLA PANTALLA, CERO SCROLL)
+   Inspirado en Virtual Cockpit, BMW E46 y Clusters Deportivos Neón Cyan
+   ============================================================================= */
+.unified-cockpit {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 5px;
+  height: calc(100vh - 116px);
+  overflow: hidden;
+}
+
+/* =============================================================================
+   Simulación de Cristal y Bisel de Instrumentos
+   ============================================================================= */
+.lcd-screen-glass, .lcd-odo-tile, .lcd-cell {
+  background-color: var(--lcd-glass-bg);
+  background-image: 
+    radial-gradient(circle, rgba(0, 240, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 3px 3px, 100% 2px;
+  border: 1px solid var(--lcd-bezel-border);
+  border-radius: 6px;
+  box-shadow: 
+    inset 0 2px 8px var(--lcd-groove),
+    inset 0 0 0 1px rgba(0, 240, 255, 0.10),
+    0 1px 3px rgba(0,0,0,0.8);
+  position: relative;
+  overflow: hidden;
+}
+
+.lcd-screen-glass::after, .lcd-odo-tile::after, .lcd-cell::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 40%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0) 60%);
+  pointer-events: none;
+}
+
+/* =============================================================================
+   1. HERO VELOCÍMETRO DUAL (ANÁLOGO 0-120 CON AGUJA Y DISPLAY DIGITAL EN HUB)
+   ============================================================================= */
+.lcd-speedometer-box {
+  padding: 3px 6px 0px 6px;
+  border-width: 1.5px;
+  background-color: #020609;
+  background-image: 
+    radial-gradient(circle, rgba(0, 240, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(rgba(0, 240, 255, 0.015) 1px, transparent 1px);
+  background-size: 4px 4px, 100% 4px;
+  background-repeat: repeat;
+  background-position: center center;
+  height: 250px;
+  min-height: 250px;
+  max-height: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border-radius: 8px;
+  box-shadow: 
+    inset 0 3px 12px rgba(0, 0, 0, 0.95),
+    inset 0 0 0 1px rgba(0, 240, 255, 0.16),
+    0 3px 10px rgba(0, 0, 0, 0.85);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Barra Superior de Testigos de Tablero (Automotive Telltale Lights) */
+.cluster-telltale-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 24px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.12);
+  margin-bottom: 0;
+  z-index: 10;
+}
+
+.telltale-blinker {
+  color: #00E676;
+  opacity: 0.35;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  transition: all 0.15s ease;
+}
+
+.telltale-blinker.active {
+  opacity: 1.0;
+  filter: drop-shadow(0 0 6px #00E676);
+  animation: telltale-blink 0.6s infinite alternate;
+}
+
+.telltale-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  user-select: none;
+}
+
+.telltale-gear {
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  color: #00F0FF;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.telltale-gear:active {
+  background: rgba(0, 240, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.telltale-gear .gear-badge {
+  color: #00F0FF;
+  font-weight: 900;
+}
+
+.telltale-gear .gear-val {
+  color: #FFFFFF;
+  font-weight: 900;
+}
+
+.telltale-power-spec {
+  color: #4A5568;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 9px;
+}
+
+.telltale-rec {
+  color: #4A5568;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 9px;
+}
+
+.telltale-rec.rec-active {
+  color: #FF3B30 !important;
+  border-color: rgba(255, 59, 48, 0.4) !important;
+  background: rgba(255, 59, 48, 0.12) !important;
+}
+
+.telltale-rec.rec-active .rec-dot {
+  animation: telltale-blink 1s infinite alternate;
+}
+
+@keyframes telltale-blink {
+  0% { opacity: 0.3; }
+  100% { opacity: 1.0; }
+}
+
+.telltale-lights {
+  color: #00F0FF;
+  opacity: 0.7;
+}
+
+/* =============================================================================
+   CONTENEDOR DE TACÓMETRO DUAL (0-120 CON AGUJA + DISPLAY DIGITAL)
+   ============================================================================= */
+.cluster-gauge-container {
+  position: relative;
+  width: 100%;
+  height: 222px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.cluster-analog-dial {
+  width: 100%;
+  height: 100%;
+  max-width: 360px;
+  overflow: visible;
+}
+
+.gauge-needle {
+  filter: drop-shadow(0 0 3px rgba(0, 240, 255, 0.8));
+}
+
+.gauge-tick {
+  stroke-linecap: round;
+}
+
+.gauge-tick.peak {
+  filter: drop-shadow(0 0 3px #FFD600);
+}
+
+.gauge-tick.danger {
+  filter: drop-shadow(0 0 4px #FF3B30);
+}
+
+.gauge-num {
+  fill: #FFFFFF !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Arial Black', sans-serif !important;
+  font-size: 21px !important;
+  font-weight: 900 !important;
+  user-select: none;
+}
+
+.gauge-num.peak {
+  fill: #FFD600 !important;
+  font-size: 23px !important;
+  font-weight: 900 !important;
+}
+
+.gauge-num.danger {
+  fill: #FF3B30 !important;
+  font-size: 21px !important;
+  font-weight: 900 !important;
+}
+
+/* Display Digital Central Integrado en el Hub del Tacómetro (Leds 7-Segmentos dentro del Círculo) */
+.cluster-speed-digital-hub {
+  position: absolute;
+  top: 67.2%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 5;
+  width: 156px;
+  height: 156px;
+}
+
+.speed-digital-value-box {
+  position: relative;
+  height: 42px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 9.5px; /* Separación amplia y definida entre centenas, decenas y unidades */
+}
+
+.speed-dseg-cell {
+  position: relative;
+  width: 20px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 240, 255, 0.025);
+  border: 1px solid rgba(0, 240, 255, 0.08);
+  border-radius: 2px;
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.8);
+}
+
+.speed-dseg-dot {
+  position: relative;
+  width: 5px;
+  height: 40px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4.5px;
+  box-sizing: border-box;
+  margin-left: -5.5px; /* Acerca el punto proporcionalmente a las unidades (4.0px efectivos) */
+  margin-right: -4.5px; /* Acerca la celda de décimas al punto (5.0px efectivos) */
+}
+
+.dseg-ghost {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-seg);
+  font-weight: 700;
+  font-size: 37px;
+  line-height: 1;
+  color: rgba(0, 240, 255, 0.12) !important;
+  user-select: none;
+  pointer-events: none;
+}
+
+.speed-dseg-dot .dseg-ghost {
+  font-size: 29px;
+  top: auto;
+  bottom: 2px;
+  transform: translateX(-50%);
+}
+
+.dseg-live {
+  position: relative;
+  font-family: var(--font-seg);
+  font-weight: 700;
+  font-size: 37px;
+  line-height: 1;
+  color: var(--lcd-cyan);
+  text-shadow: 0 0 10px var(--lcd-cyan), 0 0 20px rgba(0, 240, 255, 0.45);
+  z-index: 2;
+}
+
+.speed-dseg-dot .dseg-live {
+  font-size: 29px;
+  line-height: 1;
+  color: var(--lcd-cyan);
+  text-shadow: 0 0 8px var(--lcd-cyan);
+}
+
+.speed-digital-unit {
+  font-family: var(--font-silk);
+  font-size: 9.5px;
+  font-weight: 900;
+  color: var(--lcd-silk);
+  letter-spacing: 2.5px;
+  margin-top: 2px;
+}
+
+/* =============================================================================
+   2. ODÓMETROS MECÁNICOS ANALÓGICOS GEMELOS (VDO CLASSIC / BMW E46 DUAL RECESS)
+   ============================================================================= */
+.cluster-odometer-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  background: #020609;
+  border: 1px solid var(--lcd-bezel-border);
+  border-radius: 6px;
+  padding: 3px 6px;
+  gap: 4px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.95), 0 1px 2px rgba(0, 0, 0, 0.8);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.cluster-odo-box {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.odo-box-label {
+  font-family: var(--font-silk);
+  font-size: 7px;
+  font-weight: 900;
+  color: var(--lcd-silk);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.odo-box-label.cyan {
+  color: var(--lcd-cyan);
+}
+
+.cluster-odo-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(0, 240, 255, 0.2);
+}
+
+.odo-box-unit {
+  font-family: var(--font-silk);
+  font-size: 8.5px;
+  font-weight: 900;
+  color: var(--lcd-silk);
+  letter-spacing: 0.1em;
+}
+
+.odo-box-unit.cyan-glow {
+  color: var(--lcd-cyan);
+  text-shadow: 0 0 6px var(--lcd-cyan-glow);
+}
+
+.odo-mechanical-window {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  background: #010305;
+  border: 1.5px solid #1a2530;
+  border-radius: 4px;
+  padding: 1px 2px;
+  box-shadow: 
+    inset 0 3px 6px rgba(0, 0, 0, 0.95),
+    inset 0 0 1px rgba(0, 240, 255, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.7);
+  position: relative;
+  overflow: hidden;
+}
+
+.odo-mechanical-window.highlight {
+  border-color: rgba(0, 240, 255, 0.35);
+  box-shadow: 
+    inset 0 3px 6px rgba(0, 0, 0, 0.95),
+    inset 0 0 4px rgba(0, 240, 255, 0.25),
+    0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.odo-mechanical-window::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 42%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.03) 60%, transparent 100%);
+  pointer-events: none;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}
+
+.odo-drum-wheel {
+  width: 10.5px;
+  height: 20px;
+  overflow: hidden;
+  position: relative;
+  border-right: 1px solid #080c10;
+  background: linear-gradient(to bottom, #000000 0%, #151b22 45%, #252d37 50%, #151b22 55%, #000000 100%);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.odo-drum-wheel:last-child {
+  border-right: none;
+}
+
+.odo-drum-wheel.decimal {
+  background: linear-gradient(to bottom, #606870 0%, #b0b8c0 20%, #f0f4f8 48%, #ffffff 50%, #f0f4f8 52%, #b0b8c0 80%, #606870 100%) !important;
+  border-right: 1px solid #586068;
+}
+
+.odo-drum-wheel.decimal .odo-digit-strip span {
+  color: #03060a !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+
+.odo-digit-strip {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+.odo-digit-strip span {
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  font-family: var(--font-tech), monospace;
+  font-size: 11px;
+  font-weight: 900;
+  color: #FFFFFF;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  user-select: none;
+}
+
+/* Banner HUD de SMS / Llamada Entrante  */
+.hud-sms-banner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background: linear-gradient(90deg, rgba(8, 20, 28, 0.96) 0%, rgba(14, 32, 44, 0.96) 100%);
+  border: 1px solid rgba(0, 240, 255, 0.5);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 240, 255, 0.25);
+  animation: slideDownBanner 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 100;
+  cursor: pointer;
+}
+
+.hud-sms-banner.hidden {
+  display: none !important;
+}
+
+@keyframes slideDownBanner {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hud-sms-icon {
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+.hud-sms-text-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.hud-sms-sender {
+  font-family: var(--font-silk);
+  font-size: 10px;
+  font-weight: 900;
+  color: #FFD600;
+  letter-spacing: 0.5px;
+}
+
+.hud-sms-body {
+  font-family: var(--font-silk);
+  font-size: 11px;
+  font-weight: 700;
+  color: #FFFFFF;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hud-sms-close {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  padding: 2px 6px;
+}
+
+/* =============================================================================
+   3. CONSOLA DE RELOJES AUXILIARES DE TERRENO Y VUELO (100% ANÁLOGOS)
+   ============================================================================= */
+.cluster-terrain-console {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3.5px;
+  flex-shrink: 0;
+  height: 96px;
+  min-height: 96px;
+  max-height: 96px;
+}
+
+.terrain-gauge-card {
+  background-color: var(--lcd-glass-bg);
+  background-image: 
+    radial-gradient(circle, rgba(0, 240, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 3px 3px, 100% 2px;
+  border: 1px solid var(--lcd-bezel-border);
+  border-radius: 6px;
+  padding: 3px 2px 2px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    inset 0 1px 4px var(--lcd-groove),
+    inset 0 0 0 1px rgba(0, 240, 255, 0.08);
+}
+
+.terrain-gauge-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 35%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.035) 0%, rgba(255, 255, 255, 0) 60%);
+  pointer-events: none;
+}
+
+.terrain-gauge-title {
+  font-family: var(--font-silk);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lcd-silk);
+  z-index: 2;
+}
+
+.terrain-dial-wrap {
+  width: 100%;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+.terrain-svg-dial {
+  width: 100%;
+  height: 100%;
+  max-width: 82px;
+  overflow: visible;
+}
+
+.terrain-tick-num {
+  fill: var(--lcd-silk);
+  font-family: var(--font-tech), monospace;
+  font-size: 7.5px;
+  font-weight: 700;
+  text-anchor: middle;
+  user-select: none;
+}
+
+.terrain-tick-num.center {
+  fill: #FFD600;
+  font-weight: 900;
+}
+
+.terrain-tick-num.danger {
+  fill: #FF3B30;
+  font-weight: 900;
+}
+
+.terrain-gauge-readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px;
+  margin-top: -2px;
+  z-index: 2;
+}
+
+.terrain-val {
+  font-family: var(--font-seg);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--lcd-cyan);
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.45);
+  line-height: 1;
+}
+
+.terrain-unit {
+  font-family: var(--font-silk);
+  font-size: 7px;
+  font-weight: 800;
+  color: var(--lcd-silk);
+}
+
+/* =============================================================================
+   4. BARRA DIGITAL DE VIAJE Y VITALES (BMW E46 DIGITAL TRIP COMPUTER STYLE)
+   ============================================================================= */
+.cluster-digital-trip-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3.5px;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  flex-shrink: 0;
+}
+
+.trip-cell {
+  background-color: #020609;
+  border: 1px solid var(--lcd-bezel-border);
+  border-radius: 5px;
+  padding: 3px 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  position: relative;
+}
+
+.trip-cell::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 35%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 60%);
+  pointer-events: none;
+}
+
+.trip-cell-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+}
+
+.trip-cell-label {
+  font-family: var(--font-silk);
+  font-size: 6.8px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--lcd-silk);
+  white-space: nowrap;
+}
+
+.trip-cell-label.cyan {
+  color: var(--lcd-cyan);
+}
+
+.trip-cell-badge {
+  font-family: var(--font-mono);
+  font-size: 6.5px;
+  font-weight: 800;
+  color: var(--lcd-cyan);
+  background: rgba(0, 240, 255, 0.12);
+  border-radius: 2px;
+  padding: 0 3px;
+  letter-spacing: 0.05em;
+}
+
+.trip-cell-val-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 1.5px;
+  z-index: 2;
+}
+
+.trip-cell-val {
+  font-family: var(--font-seg);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--lcd-white);
+  line-height: 1;
+}
+
+.trip-cell-val.cyan-glow {
+  color: var(--lcd-cyan) !important;
+  text-shadow: 0 0 6px var(--lcd-cyan-glow) !important;
+}
+
+#val-time {
+  font-size: 11.5px !important;
+  letter-spacing: 0.02em;
+}
+
+.trip-cell-unit {
+  font-family: var(--font-silk);
+  font-size: 7px;
+  font-weight: 800;
+  color: var(--lcd-silk);
+  margin-left: 2px;
+}
+
+/* =============================================================================
+   4. MÓDULO MULTIMEDIA AUTOMOTRIZ CON CARÁTULA EN VIVO
+   ============================================================================= */
+.automotive-media-card {
+  background: #020609;
+  border: 1px solid var(--lcd-bezel-border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  box-shadow: inset 0 2px 6px var(--lcd-groove), 0 2px 4px rgba(0,0,0,0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-shrink: 0;
+  height: 64px;
+  min-height: 64px;
+  max-height: 64px;
+  box-sizing: border-box;
+}
+
+.media-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.media-source-tag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-silk);
+  font-size: 8px;
+  font-weight: 800;
+  color: var(--lcd-silk);
+  letter-spacing: 0.1em;
+}
+
+.media-live-status {
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+  font-weight: 800;
+  color: #00F0FF;
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.08em;
+}
+
+.media-main-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.media-album-art-wrap {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 4px;
+  background: #050a10;
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.8);
+  position: relative;
+}
+
+.media-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.media-cover-placeholder {
+  color: var(--lcd-cyan);
+  opacity: 0.55;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media-meta-col {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.media-track-title {
+  font-family: var(--font-silk);
+  font-size: 11px;
+  font-weight: 900;
+  color: #FFFFFF;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.03em;
+}
+
+.media-artist-name {
+  font-family: var(--font-silk);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--lcd-silk);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.02em;
+}
+
+.media-transport-inline {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.btn-transport-mini {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background: #04090d;
+  border: 1px solid var(--lcd-bezel-border);
+  color: var(--lcd-silk);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s ease;
+}
+
+/* Área de toque expandida ergonómica (44px) para dedos en ruta */
+.btn-transport-mini::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  left: -4px;
+  right: -4px;
+}
+
+.btn-transport-mini:active {
+  background: rgba(0, 240, 255, 0.25);
+  color: #FFFFFF;
+  transform: scale(0.95);
+}
+
+.btn-transport-mini.btn-transport-play {
+  width: 36px;
+  height: 32px;
+  background: rgba(0, 240, 255, 0.14);
+  border-color: rgba(0, 240, 255, 0.45);
+  color: #00F0FF;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+}
+
+.btn-transport-mini.btn-transport-play:active {
+  background: rgba(0, 240, 255, 0.3);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+  transform: scale(0.95);
+}
+
+/* =============================================================================
+   4.1 EASTER EGG LOONA: POLVO MÁGICO DE HADAS Y RECUERDO "stanoona"
+   ============================================================================= */
+.media-loona-relic {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 2px;
+  margin: 0 4px;
+  cursor: pointer;
+  user-select: none;
+  animation: relicEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.loona-relic-badge {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 17px;
+  padding: 0 7.5px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, rgba(255, 230, 200, 0.12) 0%, rgba(180, 100, 255, 0.2) 50%, rgba(0, 240, 255, 0.12) 100%);
+  border: 1px solid rgba(255, 225, 160, 0.55);
+  box-shadow: 0 0 8px rgba(255, 215, 120, 0.35), inset 0 0 5px rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(4px);
+  animation: loonaBadgeAura 3.2s ease-in-out infinite alternate;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.media-loona-relic:active .loona-relic-badge,
+.media-loona-relic.burst-active .loona-relic-badge {
+  transform: scale(1.12);
+  border-color: #FFFFFF;
+  box-shadow: 0 0 16px #FFE680, 0 0 24px #FF88DD, inset 0 0 8px #FFFFFF;
+}
+
+.relic-title-text {
+  font-family: var(--font-silk), -apple-system, sans-serif;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  text-shadow: 0 0 4px #FFE890, 0 0 8px #FF80CC, 0 0 12px rgba(0, 240, 255, 0.7);
+}
+
+.relic-sparkle-dot {
+  font-size: 6.5px;
+  color: #FFE680;
+  text-shadow: 0 0 4px #FFE680;
+  animation: sparkleTwinkle 1.6s ease-in-out infinite alternate;
+}
+
+.relic-dot-right {
+  animation-delay: 0.8s;
+}
+
+/* Cascada de Polvo Mágico de Hadas (Fairy Dust Cascade) */
+.fairy-dust-cascade {
+  position: absolute;
+  top: -12px;
+  left: -8px;
+  right: -8px;
+  bottom: -10px;
+  pointer-events: none;
+  z-index: 3;
+  overflow: visible;
+}
+
+.fairy-dust-particle {
+  position: absolute;
+  font-size: 8px;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  animation: fairyDustFall 2.2s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+}
+
+.fdp-1 { left: 4%;  color: #FFE680; animation-delay: 0.0s; animation-duration: 2.1s; font-size: 9px; }
+.fdp-2 { left: 22%; color: #FF99DD; animation-delay: 0.4s; animation-duration: 2.4s; font-size: 7px; }
+.fdp-3 { left: 42%; color: #FFFFFF; animation-delay: 0.8s; animation-duration: 1.9s; font-size: 5px; }
+.fdp-4 { left: 62%; color: #00F0FF; animation-delay: 0.2s; animation-duration: 2.3s; font-size: 8px; }
+.fdp-5 { left: 82%; color: #FFD166; animation-delay: 1.1s; animation-duration: 2.0s; font-size: 7px; }
+.fdp-6 { left: 14%; color: #C77DFF; animation-delay: 1.4s; animation-duration: 2.5s; font-size: 8px; }
+.fdp-7 { left: 52%; color: #FF6B8B; animation-delay: 0.6s; animation-duration: 2.2s; font-size: 5px; }
+.fdp-8 { left: 74%; color: #80FFDB; animation-delay: 1.6s; animation-duration: 2.1s; font-size: 7px; }
+.fdp-9 { left: 32%; color: #FFD6A5; animation-delay: 1.8s; animation-duration: 2.6s; font-size: 9px; }
+.fdp-10{ left: 92%; color: #FFFFFF; animation-delay: 1.0s; animation-duration: 1.8s; font-size: 6px; }
+
+@keyframes fairyDustFall {
+  0% {
+    top: -10px;
+    opacity: 0;
+    transform: translateX(0px) scale(0.3) rotate(0deg);
+    filter: drop-shadow(0 0 2px currentColor);
+  }
+  20% {
+    opacity: 0.95;
+    transform: translateX(2px) scale(1.1) rotate(45deg);
+    filter: drop-shadow(0 0 5px currentColor);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateX(-3px) scale(0.9) rotate(90deg);
+  }
+  80% {
+    opacity: 0.55;
+    transform: translateX(2px) scale(0.65) rotate(135deg);
+  }
+  100% {
+    top: 26px;
+    opacity: 0;
+    transform: translateX(0px) scale(0.2) rotate(180deg);
+    filter: drop-shadow(0 0 1px currentColor);
+  }
+}
+
+@keyframes loonaBadgeAura {
+  0% {
+    border-color: rgba(255, 220, 150, 0.5);
+    box-shadow: 0 0 8px rgba(255, 215, 120, 0.35), inset 0 0 4px rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    border-color: rgba(255, 150, 230, 0.7);
+    box-shadow: 0 0 13px rgba(255, 120, 210, 0.5), inset 0 0 6px rgba(255, 220, 255, 0.3);
+  }
+  100% {
+    border-color: rgba(0, 240, 255, 0.6);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.45), inset 0 0 4px rgba(200, 255, 255, 0.25);
+  }
+}
+
+@keyframes sparkleTwinkle {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 3px #FFE680);
+  }
+}
+
+@keyframes relicEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.65) translateY(-6px);
+    filter: blur(4px);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.08) translateY(1px);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* =============================================================================
+   5. CONTROLES DE CABINA AUTOMOTRIZ (PULL/PUSH SWITCHES)
+   ============================================================================= */
+.lcd-cockpit-controls {
+  display: grid;
+  grid-template-columns: 1.25fr 0.95fr;
+  gap: 8px;
+  align-items: stretch;
+  height: 48px;
+  min-height: 48px;
+  max-height: 48px;
+  flex-shrink: 0;
+}
+
+.btn-cockpit {
+  border: 1px solid var(--lcd-bezel-border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-family: var(--font-silk);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.08), 0 2px 5px rgba(0,0,0,0.85);
+  transition: all 0.15s ease;
+}
+
+.btn-record-start {
+  background: linear-gradient(180deg, #022b1b 0%, #01180f 100%);
+  border-color: rgba(0, 255, 136, 0.5);
+  color: #00FF88;
+}
+
+.btn-record-start.recording {
+  background: linear-gradient(180deg, #38030b 0%, #200106 100%);
+  border-color: #FF3B30;
+  color: #FF3B30;
+  animation: pulse-red 1.2s infinite ease-in-out;
+}
+
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 6px rgba(255, 51, 68, 0.4), inset 0 0 4px rgba(255, 51, 68, 0.2); }
+  50% { box-shadow: 0 0 16px rgba(255, 51, 68, 0.9), inset 0 0 8px rgba(255, 51, 68, 0.4); }
+}
+
+.btn-horn {
+  background: linear-gradient(180deg, #331f00 0%, #1c1100 100%);
+  border-color: rgba(255, 179, 0, 0.5);
+  color: #FFB300;
+}
+
+.btn-horn:active {
+  background: #FFB300;
+  color: #000;
+  transform: scale(0.98);
+}
+
+.lcd-sensor-status-card {
+  background: var(--lcd-housing-bg);
+  border: 1px solid var(--lcd-bezel-border);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.sensor-card-title {
+  font-family: var(--font-silk);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--lcd-cyan);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.sensor-honest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sensor-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 3px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sensor-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.sensor-name-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.sensor-title {
+  font-family: var(--font-silk);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--lcd-white);
+}
+
+.sensor-mac {
+  font-family: var(--font-silk);
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--lcd-silk-dim);
+}
+
+.sensor-honest-badge {
+  font-family: var(--font-silk);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+/* Tipografía Cohesiva en Pestaña Sensores */
+.card-section-title {
+  font-family: var(--font-silk);
+  font-size: 8.5px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--lcd-cyan);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.device-list-lcd {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.device-item-lcd {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--lcd-bezel-border);
+}
+
+.device-item-lcd:last-child {
+  border-bottom: none;
+}
+
+.dev-name {
+  font-family: var(--font-silk);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--lcd-white);
+  margin-bottom: 2px;
+}
+
+.dev-meta {
+  font-family: var(--font-silk);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--lcd-silk-dim);
+}
+
+.sensor-honest-badge.disconnected {
+  background: #11161a;
+  border: 1px solid #23313a;
+  color: #5d7580;
+}
+
+.sensor-honest-badge.connected {
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid var(--lcd-cyan);
+  color: var(--lcd-cyan);
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
+}
+
+/* =============================================================================
+   MAPA 2D TÁCTICO NEGATIVE LCD (100% FUNCIONAL Y VISIBLE)
+   ============================================================================= */
+#tab-map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 60px;
+  height: calc(100vh - 60px);
+  padding: 0 !important;
+  margin: 0 !important;
+  display: none;
+}
+
+#tab-map.active {
+  display: block !important;
+}
+
+#map-wrapper {
+  position: relative;
+  width: 100% !important;
+  height: 100% !important;
+  background: #f2efe9;
+}
+
+#map-view {
+  width: 100% !important;
+  height: 100% !important;
+  background: #f2efe9;
+}
+
+/* Modo Claro de Mapa (Tiles OpenStreetMap Nativos sin inversión) */
+.leaflet-tile {
+  filter: none !important;
+}
+
+.map-hud-overlay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  left: 12px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.map-overlay-spacer {
+  flex: 1;
+}
+
+.hud-btn-center {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px);
+  color: #0b1720;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-family: var(--font-silk);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.20);
+}
+
+.hud-btn-center svg {
+  color: #0B56D0;
+}
+
+.hud-btn-center:active {
+  background: #0B56D0;
+  color: #ffffff;
+}
+
+.hud-btn-center:active svg {
+  color: #ffffff;
+}
+
+.tactical-marker {
+  width: 22px;
+  height: 22px;
+  background: #0B56D0;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 0 10px rgba(11, 86, 208, 0.5);
+  position: relative;
+}
+
+.tactical-marker::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  background: #ffffff;
+  border-radius: 50%;
+}
+
+/* Estado Vacío de Historial */
+.empty-history-lcd {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 24px;
+  gap: 12px;
+  text-align: center;
+}
+
+.empty-history-title {
+  font-family: var(--font-silk);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  color: var(--lcd-silk);
+}
+
+.empty-history-sub {
+  font-family: var(--font-silk);
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--lcd-silk-dim);
+  max-width: 260px;
+}
+
+/* =============================================================================
+   TARJETAS Y VISTA DE AJUSTES (TIPOGRAFÍA COHESIVA IDENTICA)
+   ============================================================================= */
+.lcd-card {
+  background: var(--lcd-housing-bg);
+  border: 1px solid var(--lcd-bezel-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.card-section-title {
+  font-family: var(--font-silk);
+  font-size: 8.5px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  color: var(--lcd-silk);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.settings-item-title {
+  font-family: var(--font-silk);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--lcd-white);
+  letter-spacing: 0.02em;
+}
+
+.settings-item-desc {
+  font-family: var(--font-silk);
+  font-size: 10px;
+  color: var(--lcd-silk);
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+.badge-status-active {
+  font-family: var(--font-silk);
+  font-size: 9px;
+  font-weight: 900;
+  color: var(--lcd-cyan);
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid var(--lcd-cyan);
+  padding: 3px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.08em;
+}
+
+.btn-lcd-mini {
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid var(--lcd-cyan);
+  color: var(--lcd-cyan);
+  font-family: var(--font-silk);
+  font-size: 8.5px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  padding: 3px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.btn-lcd-mini.btn-danger {
+  background: rgba(255, 51, 68, 0.12);
+  border-color: var(--lcd-red);
+  color: var(--lcd-red);
+}
+
+.btn-lcd-action {
+  background: #061118;
+  border: 1px solid var(--lcd-bezel-border);
+  color: var(--lcd-white);
+  font-family: var(--font-silk);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-lcd-action.cyan {
+  background: rgba(0, 240, 255, 0.1);
+  border-color: var(--lcd-cyan);
+  color: var(--lcd-cyan);
+}
+
+/* =============================================================================
+   BOTTOM NAVBAR (ÍCONOS CON DISEÑO LCD Y TIPOGRAFÍA IDÉNTICA)
+   ============================================================================= */
+#bottom-navbar {
+  height: 60px;
+  background: #020507;
+  border-top: 1.5px solid var(--lcd-bezel-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 4px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.9);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+}
+
+.nav-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: #3b5059; /* Unlit ghost icon color */
+  cursor: pointer;
+  flex: 1;
+  height: 100%;
+  transition: all 0.12s ease;
+}
+
+.nav-lcd-icon {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  fill: none;
+}
+
+.nav-tab-label {
+  font-family: var(--font-silk);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.nav-tab.active {
+  color: var(--lcd-cyan);
+}
+
+.nav-tab.active .nav-lcd-icon {
+  stroke: var(--lcd-cyan);
+  filter: drop-shadow(0 0 6px var(--lcd-cyan));
+}
+
+/* =============================================================================
+   MODAL DE CONFIRMACIÓN (TIPOGRAFÍA IDÉNTICA NEGATIVE LCD)
+   ============================================================================= */
+.lcd-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.lcd-modal-box {
+  background: #04090d;
+  border: 1.5px solid var(--lcd-cyan);
+  border-radius: 8px;
+  padding: 16px;
+  max-width: 320px;
+  width: 100%;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.95), 0 0 15px rgba(0, 240, 255, 0.25);
+  font-family: var(--font-silk);
+}
+
+.lcd-modal-title {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  color: var(--lcd-cyan);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.lcd-modal-body {
+  font-size: 11px;
+  color: var(--lcd-silk);
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+.lcd-modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.btn-modal-cancel {
+  background: #0e171d;
+  border: 1px solid var(--lcd-bezel-border);
+  color: var(--lcd-white);
+  padding: 8px 0;
+  border-radius: 4px;
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.btn-modal-confirm {
+  background: var(--lcd-cyan);
+  border: 1px solid var(--lcd-cyan);
+  color: #000;
+  padding: 8px 0;
+  border-radius: 4px;
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.btn-modal-confirm.btn-danger {
+  background: #ff3b30 !important;
+  border-color: #ff3b30 !important;
+  color: #fff !important;
+}
+
+/* =============================================================================
+   DIAGRAMACIÓN PROFESIONAL DE AJUSTES (ESPACIADO EXACTO Y TIPOGRAFÍA COHESIVA)
+   ============================================================================= */
+.settings-card {
+  background-color: var(--lcd-glass-bg);
+  border: 1px solid var(--lcd-bezel-border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: inset 0 1px 4px var(--lcd-groove);
+  margin-bottom: 14px;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+}
+
+.settings-col-text {
+  flex: 1;
+}
+
+.settings-title {
+  font-family: var(--font-silk);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--lcd-white);
+  margin-bottom: 5px;
+}
+
+.settings-desc {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(220, 240, 255, 0.72);
+}
+
+.settings-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 4px 0;
+}
+
+.settings-header-tag {
+  font-family: var(--font-silk);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--lcd-cyan);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.settings-meta-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+  padding: 3px 0;
+}
+
+.meta-label {
+  color: var(--lcd-silk);
+  font-size: 12px;
+}
+
+.meta-val {
+  font-weight: 800;
+  color: var(--lcd-white);
+  font-size: 12px;
+}
+
+.meta-val.cyan {
+  color: var(--lcd-cyan);
+  text-shadow: 0 0 6px var(--lcd-cyan-glow);
+}
+
+.btn-settings-action {
+  background: #0a141b;
+  border: 1px solid var(--lcd-bezel-border);
+  color: var(--lcd-white);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-family: var(--font-silk);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-settings-action.cyan {
+  border-color: var(--lcd-cyan);
+  color: var(--lcd-cyan);
+}
+
+.badge-status-metric {
+  font-family: var(--font-silk);
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--lcd-cyan);
+  letter-spacing: 0.08em;
+}
+
+/* Pulsación Larga 3s en Tarjetas de Historial */
+.lcd-card.holding-delete {
+  border-color: #ff3b30 !important;
+  box-shadow: 0 0 14px rgba(255, 59, 48, 0.45) !important;
+  transition: all 0.3s ease;
+}
+
+/* =============================================================================
+   EXPANSIÓN ODÓMETRO HASTA 999.999.999.9 KM
+   ============================================================================= */
+#val-odo-total, #ghost-odo-total {
+  font-size: clamp(14px, 4.2vw, 22px) !important;
+  letter-spacing: -0.02em;
+}
+
+/* =============================================================================
+   MAP SEARCH BAR, DROPDOWN & VOICE TOGGLE
+   ============================================================================= */
+.map-search-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  pointer-events: auto;
+}
+
+.map-search-input-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 24px;
+  padding: 6px 14px;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+.map-search-input-box svg {
+  color: #0B56D0;
+  flex-shrink: 0;
+}
+
+.map-search-input-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font-silk);
+  font-size: 13px;
+  font-weight: 700;
+  color: #0b1720;
+  outline: none;
+  width: 100%;
+}
+
+.map-search-input-box input::placeholder {
+  color: #6a7c87;
+  font-weight: 500;
+}
+
+.btn-clear-search {
+  background: none;
+  border: none;
+  color: #8c9ba5;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.hud-btn-icon {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  flex-shrink: 0;
+  color: #0B56D0;
+}
+
+.hud-btn-icon.voice-muted {
+  color: #8c9ba5;
+  background: rgba(240, 240, 240, 0.96);
+}
+
+.map-search-dropdown {
+  position: absolute;
+  top: 56px;
+  left: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 1100;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+}
+
+.search-item-row:active {
+  background: #f0f6ff;
+}
+
+.search-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.search-item-name {
+  font-family: var(--font-silk);
+  font-size: 13px;
+  font-weight: 800;
+  color: #0b1720;
+}
+
+.search-item-commune {
+  font-size: 10px;
+  font-weight: 600;
+  color: #5a6e7a;
+}
+
+.search-item-dist {
+  font-family: var(--font-silk);
+  font-size: 11px;
+  font-weight: 800;
+  color: #0B56D0;
+  background: rgba(11, 86, 208, 0.08);
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+/* =============================================================================
+   NAVIGATION HUD (TURN-BY-TURN GOOGLE MAPS STYLE)
+   ============================================================================= */
+.nav-hud-top {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  background: #0B56D0;
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(11, 86, 208, 0.40);
+  z-index: 1250;
+  pointer-events: auto;
+  box-sizing: border-box;
+}
+
+.nav-maneuver-icon {
+  width: 42px;
+  height: 42px;
+  background: rgba(255, 255, 255, 0.20);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-instruction-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-instruction-dist {
+  font-family: var(--font-silk);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+.nav-instruction-street {
+  font-family: var(--font-silk);
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.92;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-cancel-nav {
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  color: #ffffff;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.nav-hud-bottom {
+  position: absolute;
+  bottom: 74px; /* Exactamente 14px sobre el navbar inferior de 60px */
+  left: 14px;
+  right: 14px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 18px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  z-index: 1250;
+  pointer-events: auto;
+  box-sizing: border-box;
+}
+
+.nav-stat-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-stat-val {
+  font-family: var(--font-silk);
+  font-size: 15px;
+  font-weight: 900;
+  color: #0b1720;
+}
+
+.nav-stat-lbl {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #6a7c87;
+  letter-spacing: 0.05em;
+}
+
+.btn-end-nav {
+  background: #ff3b30;
+  color: #ffffff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-family: var(--font-silk);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
+/* =============================================================================
+   RIDE DETAIL VIEW (STRAVA STYLE)
+   ============================================================================= */
+#ride-detail-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+
+.detail-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.btn-detail-back {
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid var(--lcd-bezel-border);
+  color: var(--lcd-cyan);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: var(--font-silk);
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.detail-title-top {
+  font-family: var(--font-silk);
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--lcd-white);
+  letter-spacing: 0.05em;
+}
+
+.detail-source-badge {
+  font-size: 9px;
+  font-weight: 900;
+  color: var(--lcd-silk);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+.detail-map-box {
+  width: 100%;
+  height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--lcd-bezel-border);
+  background: #f2efe9;
+  position: relative;
+}
+
+#ride-detail-map {
+  width: 100%;
+  height: 100%;
+}
+
+.detail-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.detail-metric-card {
+  background: var(--lcd-glass-bg);
+  border: 1px solid var(--lcd-bezel-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.det-lbl {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--lcd-silk);
+  letter-spacing: 0.06em;
+}
+
+.det-val {
+  font-family: var(--font-silk);
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--lcd-white);
+}
+
+.det-val.cyan {
+  color: var(--lcd-cyan);
+  text-shadow: 0 0 8px var(--lcd-cyan-glow);
+}
+
+.det-val.red {
+  color: #ff3344;
+}
+
+.det-val.amber {
+  color: #ffb300;
+}
+
+.det-unit {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--lcd-silk);
+  margin-left: 2px;
+}
+
+.detail-actions-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btn-detail-action {
+  flex: 1;
+  background: #0a141b;
+  border: 1px solid var(--lcd-bezel-border);
+  color: var(--lcd-white);
+  padding: 10px;
+  border-radius: 8px;
+  font-family: var(--font-silk);
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.btn-detail-action.strava-btn {
+  background: rgba(252, 76, 2, 0.12);
+  border-color: #fc4c02;
+  color: #fc4c02;
+}
+
+/* =============================================================================
+   DEVELOPER CREDIT CARD
+   ============================================================================= */
+.developer-credit-card {
+  margin-top: 24px;
+  padding: 16px;
+  background: rgba(0, 240, 255, 0.03);
+  border: 1px solid var(--lcd-bezel-border);
+  border-radius: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dev-credit-author {
+  font-family: var(--font-silk);
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--lcd-cyan);
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 8px var(--lcd-cyan-glow);
+}
+
+.dev-credit-tag {
+  font-family: var(--font-silk);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--lcd-silk-dim);
+  letter-spacing: 0.1em;
+}
+
+/* =============================================================================
+   Kotone 2026-10-30 · CAPA SOBRIA
+   Quita lo que delataba «hecho por IA»: resplandores neón, texturas de puntos,
+   brillos de vidrio, bordes cian en cada caja y mayúsculas espaciadas por todas
+   partes. Se conservan los dígitos LCD, el odómetro de tambor y la paleta negra
+   OLED (decisiones de Javiera). El cian queda SÓLO para valores vivos y estado
+   activo; el resto es blanco/gris como un instrumento de verdad.
+   ============================================================================= */
+:root {
+  --lcd-cyan: #36d3e3;
+  --lcd-cyan-glow: transparent;
+  --lcd-ghost: rgba(54, 211, 227, 0.06);
+  --lcd-bezel-border: rgba(255, 255, 255, 0.07);
+  --lcd-glass-bg: #0a0b0c;
+  --lcd-housing-bg: #0a0b0c;
+  --lcd-silk: #9aa1a6;
+  --lcd-silk-dim: #61686d;
+  --lcd-amber: #f2a93b;
+  --lcd-red: #ef4a55;
+  --lcd-green: #34c77b;
+  --sobria-line: rgba(255, 255, 255, 0.07);
+  --sobria-fill: #121416;
+}
+
+/* Sin neón: ningún texto ni caja brilla */
+*, *::before { text-shadow: none !important; }
+.lcd-screen-glass, .lcd-odo-tile, .lcd-cell, .lcd-speedometer-box, .terrain-gauge-card,
+.trip-cell, .settings-card, .lcd-top-bar, .media-card, .btn-cockpit, .btn-record-start,
+.btn-settings-action, .badge-status-active, .nav-tab, .nav-lcd-icon {
+  box-shadow: none !important;
+  filter: none !important;
+}
+.btn-record-start, .btn-record-start * { animation: none !important; }
+
+/* Sin texturas de puntos ni brillos diagonales de «vidrio» */
+/* (la grilla tenue del velocímetro se conserva: la pidió Javiera el 28-oct) */
+.lcd-screen-glass, .lcd-odo-tile, .lcd-cell, .terrain-gauge-card {
+  background-image: none !important;
+  background-color: var(--lcd-glass-bg) !important;
+}
+.lcd-screen-glass::after, .lcd-odo-tile::after, .lcd-cell::after,
+.terrain-gauge-card::after, .trip-cell::after { display: none !important; }
+
+/* Cajas: borde de pelo neutro en vez de cian */
+.lcd-screen-glass, .lcd-odo-tile, .lcd-cell, .lcd-speedometer-box, .terrain-gauge-card,
+.trip-cell, .settings-card, .lcd-top-bar {
+  border-color: var(--sobria-line) !important;
+  border-radius: 14px !important;
+}
+
+/* Etiquetas: menos gritonas (sin tracking exagerado, gris) */
+.lcd-top-bar .lcd-brand, .settings-header-tag, .terrain-gauge-title,
+.trip-cell-label, .nav-tab-label {
+  letter-spacing: 0.04em !important;
+  color: var(--lcd-silk) !important;
+}
+.nav-tab.active .nav-tab-label { color: var(--lcd-white) !important; }
+.nav-tab:not(.active) .nav-lcd-icon { opacity: 0.55; }
+#bottom-navbar { border-top: 1px solid var(--sobria-line) !important; background: #000 !important; }
+
+/* Botones planos: un relleno discreto; sólo la acción principal lleva color */
+.btn-settings-action, .btn-settings-action.cyan {
+  background: var(--sobria-fill) !important;
+  border: 1px solid var(--sobria-line) !important;
+  color: var(--lcd-white) !important;
+  letter-spacing: 0.03em !important;
+}
+.btn-settings-action.cyan { color: var(--lcd-cyan) !important; }
+.btn-cockpit { border-width: 1px !important; }
+.btn-record-start { background: #0f2a1d !important; border-color: rgba(52, 199, 123, 0.35) !important; }
+
+/* Ajustes */
+.settings-title { font-weight: 600 !important; }
+.settings-desc { color: var(--lcd-silk) !important; }
+.badge-status-metric { display: none !important; }
+.developer-credit-card { border: 0 !important; background: none !important; box-shadow: none !important; }
+.developer-credit-card .dev-credit-author { color: var(--lcd-silk-dim) !important; font-weight: 500 !important; font-size: 12px !important; }
+
+/* Strava: credenciales y avisos */
+.strava-creds { flex-direction: column; gap: 10px; padding: 4px 0 14px; }
+.strava-input {
+  background: #050607; color: var(--lcd-white); border: 1px solid var(--sobria-line);
+  border-radius: 10px; padding: 12px 14px; font: 15px var(--font-silk); user-select: text;
+}
+.strava-input:focus { outline: none; border-color: rgba(54, 211, 227, 0.5); }
+.app-notice {
+  position: fixed; left: 16px; right: 16px; bottom: 96px; z-index: 9999;
+  background: #1a1d1f; color: #fff; border: 1px solid var(--sobria-line); border-radius: 12px;
+  padding: 12px 16px; font: 500 14px var(--font-silk); text-align: center;
+  opacity: 0; transform: translateY(8px); transition: opacity .2s, transform .2s; pointer-events: none;
+}
+.app-notice.visible { opacity: 1; transform: none; }

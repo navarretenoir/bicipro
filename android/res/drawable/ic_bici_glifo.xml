@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Glifo: bicicleta en el lenguaje de SF Symbols «bicycle» (trazo redondeado, manubrio curvo), zona segura de 66 dp. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <group android:scaleX="0.8" android:scaleY="0.8" android:pivotX="54" android:pivotY="54" android:translateY="2">
+        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="5.2" android:strokeLineCap="round" android:strokeLineJoin="round"
+            android:pathData="M33,64m-12.5,0a12.5,12.5 0,1 1,25 0a12.5,12.5 0,1 1,-25 0 M75,64m-12.5,0a12.5,12.5 0,1 1,25 0a12.5,12.5 0,1 1,-25 0" />
+        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="5.2" android:strokeLineCap="round" android:strokeLineJoin="round"
+            android:pathData="M33,64 L44,46 L52,64 Z M44,46 L66,46 M52,64 L66,46 L75,64 M66,46 L62.5,37.5 Q61.8,35.5 64,35.5 L70,35.5 M44,46 L42.2,41.5 M38,41.5 L47.5,41.5" />
+    </group>
+</vector>

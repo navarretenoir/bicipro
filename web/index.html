@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>BiciPRO</title>
+  <link rel="stylesheet" href="vendor/leaflet.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/ios.css">
+</head>
+<body>
+
+  <!-- Contenedor Principal de Pantallas -->
+  <main id="app-container">
+
+    <!-- ====================================================================
+         TAB 1: COMPUTADOR / NEGATIVE LCD COCKPIT (2 PÁGINAS SIN SCROLL)
+         ==================================================================== -->
+    <section id="tab-dashboard" class="tab-pane active">
+
+      <!-- Top Hardware Status Bar -->
+      <header class="lcd-top-bar">
+        <div class="lcd-brand">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M12 18v-4l-3-3 5-4 4 3h3"/></svg>
+          BICIPRO
+        </div>
+        <div class="lcd-status-indicators">
+          <!-- Batería Teléfono -->
+          <div class="indicator-item item-phone-bat" title="Batería Teléfono">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            <span class="indicator-val" id="val-phone-battery">100%</span>
+          </div>
+            <!-- Batería E-Bike A Dece Oasis (Lectura BLE en vivo) -->
+            <div class="indicator-item cyan-tint item-ebike-bat" title="Batería A Dece Oasis">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span class="indicator-val" id="ebike-battery-text">--%</span>
+            </div>
+          <!-- Brújula de Orientación (Espacio Fijo Reservado) -->
+          <div class="indicator-item amber-tint item-compass" title="Rumbo">
+            <span class="indicator-val compass-val" id="val-compass">0° N</span>
+          </div>
+          <!-- Clima -->
+          <div class="indicator-item item-weather" title="Temperatura">
+            <span class="indicator-val weather-val" id="val-weather">16°C</span>
+          </div>
+          <!-- Reloj LCD -->
+          <div class="indicator-item item-clock" title="Hora">
+            <span class="indicator-val font-dseg clock-val" id="clock-display">12:00</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Banner de Llamada Telefónica Bluetooth -->
+      <div id="incoming-call-banner" class="lcd-call-card" style="display: none;">
+        <div class="call-info">
+          <span class="call-badge">Llamada entrante</span>
+          <span class="call-caller" id="caller-id-text">+56 9 8765 4321</span>
+        </div>
+        <div class="call-actions">
+          <button class="btn-call-action btn-answer" onclick="answerCall()">Atender</button>
+          <button class="btn-call-action btn-reject" onclick="endCall()">Rechazar</button>
+        </div>
+      </div>
+
+      <!-- ================================================================
+           PANEL DE INSTRUMENTOS UNIFICADO AUTOMOTRIZ (UNA SOLA PANTALLA)
+           ================================================================ -->
+      <div id="unified-cockpit" class="unified-cockpit">
+
+        <!-- 1. VELOCÍMETRO HERO DUAL (0 A 120 KM/H) Y VISERA DE TESTIGOS AUTOMOTRICES -->
+        <div class="lcd-speedometer-box">
+          <!-- Barra Superior de Testigos de Tablero (Automotive Telltale Lights) -->
+          <div class="cluster-telltale-bar">
+            <!-- Flecha Intermitente Izquierda -->
+            <div class="telltale-blinker telltale-blinker-left" id="telltale-turn-l">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="18 4 6 12 18 20 18 4"/></svg>
+            </div>
+
+            <!-- Indicador Transmisión / Asistencia E-Bike (Drive Mode: D1..D5) -->
+            <div class="telltale-item telltale-gear" id="telltale-gear" onclick="cycleAssistLevel()" title="Nivel de Asistencia (D1..D5) - Toca para cambiar">
+              <span class="gear-badge" id="telltale-gear-badge">D</span><span class="gear-val" id="telltale-gear-val">1</span>
+            </div>
+
+            <!-- Indicador Tren Motriz 500W -->
+            <div class="telltale-item telltale-power-spec" title="Potencia de Motor E-Bike">
+              <span>500W</span>
+            </div>
+
+            <!-- Indicador de Grabación / Telemetría Activa (REC) -->
+            <div id="telltale-rec" class="telltale-item telltale-rec" title="Registro de Ruta Activo">
+              <span class="rec-dot">●</span>
+              <span>REC</span>
+            </div>
+
+            <!-- Indicador Testigo de Faros / Luces -->
+            <div class="telltale-item telltale-lights" title="Iluminación Frontal">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            </div>
+
+            <!-- Flecha Intermitente Derecha -->
+            <div class="telltale-blinker telltale-blinker-right" id="telltale-turn-r">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 18 12 6 20 6 4"/></svg>
+            </div>
+          </div>
+
+          <!-- Banner de Notificación de SMS / Llamada Entrante  -->
+          <div id="incoming-sms-banner" class="hud-sms-banner hidden" onclick="dismissSmsBanner()">
+            <span class="hud-sms-icon">💬</span>
+            <div class="hud-sms-text-wrap">
+              <span class="hud-sms-sender" id="hud-sms-sender">SMS entrante</span>
+              <span class="hud-sms-body" id="hud-sms-body">Mensaje recibido</span>
+            </div>
+            <span class="hud-sms-close">✕</span>
+          </div>
+
+          <!-- VELOCÍMETRO INTEGRADO DUAL (0 A 120 KM/H CON AGUJA Y DISPLAY DIGITAL HUB) -->
+          <div class="cluster-gauge-container">
+            <svg class="cluster-analog-dial" viewBox="0 0 360 252" id="speedo-gauge-svg">
+              <defs>
+                <linearGradient id="gauge-glow-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#00F0FF"/>
+                  <stop offset="60%" stop-color="#00E5FF"/>
+                  <stop offset="82%" stop-color="#FFD600"/>
+                  <stop offset="100%" stop-color="#FF3B30"/>
+                </linearGradient>
+              </defs>
+
+              <!-- Escala Circular de Fondo (0 a 120 KM/H, Radio 148, Span 240°) -->
+              <path class="gauge-arc-track" d="M 51.8 242.0 A 148 148 0 1 1 308.2 242.0" fill="none" stroke="rgba(0, 240, 255, 0.16)" stroke-width="5.5" stroke-linecap="round"/>
+              <!-- Zonas (Kotone 2026-10-31, pedido de Javiera): amarillo 25–30 km/h, rojo desde 30 km/h -->
+              <path class="gauge-zone zone-yellow" d="M 49.4 120.5 A 139 139 0 0 1 59.6 98.5" fill="none" stroke="#FFD60A" stroke-width="4" stroke-linecap="butt"/>
+              <path class="gauge-zone zone-red" d="M 59.6 98.5 A 139 139 0 0 1 300.4 237.5" fill="none" stroke="#FF453A" stroke-width="4" stroke-linecap="butt"/>
+              <path id="gauge-arc-active" class="gauge-arc-active" d="M 51.8 242.0 A 148 148 0 1 1 308.2 242.0" fill="none" stroke="url(#gauge-glow-grad)" stroke-width="7" stroke-linecap="round" stroke-dasharray="620.0" stroke-dashoffset="620.0"/>
+
+              <!-- Aguja Analógica Sweeping (Pivote central en 180 168, aguja engrosada deportiva) -->
+              <g id="gauge-needle-group" class="gauge-needle" style="transform-origin: 180px 168px; transform: rotate(-120deg);">
+                <polygon class="needle-inner" points="175.0,92 185.0,92 182.5,42 177.5,42" fill="#00F0FF"/>
+                <polygon points="177.5,42 182.5,42 181.5,16 178.5,16" fill="#FF3B30"/>
+              </g>
+
+              <!-- Círculo Interior para Display Digital (Diámetro 164px - 100% Transparente para Grilla Continua) -->
+              <circle cx="180" cy="168" r="82" fill="none" stroke="rgba(0, 240, 255, 0.45)" stroke-width="2.2"/>
+              <circle cx="180" cy="168" r="78" fill="none" stroke="rgba(0, 240, 255, 0.15)" stroke-width="1.2"/>
+
+              <!-- Ticks Principales y Numerales (0, 20, 40, 60, 80, 100, 120) -->
+              <!-- 0 KM/H -->
+              <line x1="62.2" y1="236.0" x2="50.1" y2="243.0" stroke="var(--lcd-cyan)" stroke-width="4.0" stroke-linecap="round"/>
+              <text x="81.3" y="225.0" class="gauge-num" font-size="21" text-anchor="middle" dominant-baseline="central">0</text>
+
+              <!-- 20 KM/H -->
+              <line x1="46.1" y1="144.4" x2="32.3" y2="142.0" stroke="var(--lcd-cyan)" stroke-width="4.0" stroke-linecap="round"/>
+              <text x="67.7" y="148.2" class="gauge-num" font-size="21" text-anchor="middle" dominant-baseline="central">20</text>
+
+              <!-- 40 KM/H -->
+              <line x1="92.6" y1="63.8" x2="83.6" y2="53.1" stroke="var(--lcd-cyan)" stroke-width="4.0" stroke-linecap="round"/>
+              <text x="106.7" y="80.7" class="gauge-num danger" font-size="21" text-anchor="middle" dominant-baseline="central">40</text>
+
+              <!-- 60 KM/H (Cénit Agrandado) -->
+              <line x1="180.0" y1="32.0" x2="180.0" y2="18.0" stroke="#FFD600" stroke-width="4.5" stroke-linecap="round"/>
+              <text x="180.0" y="54.0" class="gauge-num danger" font-size="21" text-anchor="middle" dominant-baseline="central">60</text>
+
+              <!-- 80 KM/H -->
+              <line x1="267.4" y1="63.8" x2="276.4" y2="53.1" stroke="var(--lcd-cyan)" stroke-width="4.0" stroke-linecap="round"/>
+              <text x="253.3" y="80.7" class="gauge-num danger" font-size="21" text-anchor="middle" dominant-baseline="central">80</text>
+
+              <!-- 100 KM/H (Zona de Alerta) -->
+              <line x1="313.9" y1="144.4" x2="327.7" y2="142.0" stroke="#FF3B30" stroke-width="4.0" stroke-linecap="round"/>
+              <text x="292.3" y="148.2" class="gauge-num danger" font-size="21" text-anchor="middle" dominant-baseline="central">100</text>
+
+              <!-- 120 KM/H (Zona Roja Deportiva) -->
+              <line x1="297.8" y1="236.0" x2="309.9" y2="243.0" stroke="#FF3B30" stroke-width="4.0" stroke-linecap="round"/>
+              <text x="278.7" y="225.0" class="gauge-num danger" font-size="21" text-anchor="middle" dominant-baseline="central">120</text>
+
+              <!-- Sub-ticks Intermedios (10, 30, 50, 70, 90, 110) -->
+              <line x1="41.1" y1="192.5" x2="33.3" y2="193.9" stroke="rgba(0, 240, 255, 0.75)" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="57.9" y1="97.5" x2="51.0" y2="93.5" stroke="rgba(0, 240, 255, 0.75)" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="131.8" y1="35.5" x2="129.0" y2="28.0" stroke="rgba(0, 240, 255, 0.75)" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="228.2" y1="35.5" x2="231.0" y2="28.0" stroke="rgba(0, 240, 255, 0.75)" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="302.1" y1="97.5" x2="309.0" y2="93.5" stroke="rgba(0, 240, 255, 0.75)" stroke-width="2.4" stroke-linecap="round"/>
+              <line x1="318.9" y1="192.5" x2="326.7" y2="193.9" stroke="#FF3B30" stroke-width="2.4" stroke-linecap="round"/>
+            </svg>
+
+            <!-- Display Digital Central Integrado en el Hub del Tacómetro (Exactamente Centrado en el Círculo) -->
+            <div class="cluster-speed-digital-hub">
+              <div class="speed-digital-value-box">
+                <div class="speed-dseg-cell"><span class="dseg-ghost">8</span><span class="dseg-live" id="spd-h"></span></div>
+                <div class="speed-dseg-cell"><span class="dseg-ghost">8</span><span class="dseg-live" id="spd-t"></span></div>
+                <div class="speed-dseg-cell"><span class="dseg-ghost">8</span><span class="dseg-live" id="spd-u">0</span></div>
+                <div class="speed-dseg-dot"><span class="dseg-ghost">.</span><span class="dseg-live">.</span></div>
+                <div class="speed-dseg-cell"><span class="dseg-ghost">8</span><span class="dseg-live" id="spd-dec">0</span></div>
+              </div>
+              <span class="speed-digital-unit">KM/H</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. ODÓMETROS MECÁNICOS ANALÓGICOS GEMELOS (VDO CLASSIC / BMW E46 DUAL RECESS) -->
+        <div class="cluster-odometer-bar">
+          <div class="cluster-odo-box">
+            <span class="odo-box-label"><svg class="tic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20L9 4M18 20L15 4M12 6v2M12 11v2M12 16v2"/></svg>Odo total</span>
+            <div class="odo-mechanical-window" id="barrel-odo-total" title="Odómetro Total de Tambores Mecánicos"></div>
+            <span class="odo-box-unit">KM</span>
+          </div>
+
+          <div class="cluster-odo-divider"></div>
+
+          <div class="cluster-odo-box highlight">
+            <span class="odo-box-label cyan"><svg class="tic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h5a3 3 0 0 0 0-6h-2a3 3 0 0 1 0-6h5"/></svg>Distancia</span>
+            <div class="odo-mechanical-window highlight" id="barrel-odo-trip" title="Contador de Distancia Actual"></div>
+            <span class="odo-box-unit cyan-glow">KM</span>
+          </div>
+        </div>
+
+        <!-- 3. CONSOLA TRIPLE DE RELOJES AUXILIARES DE TERRENO (100% ANÁLOGOS CON AGUJAS) -->
+        <div class="cluster-terrain-console">
+          <!-- Reloj 1: PENDIENTE / INCLINÓMETRO ANÁLOGO -->
+          <div class="terrain-gauge-card">
+            <span class="terrain-gauge-title"><svg class="tic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19h18L3 8z"/><path d="M8 19v-3"/></svg>Pendiente</span>
+            <div class="terrain-dial-wrap">
+              <svg class="terrain-svg-dial" viewBox="0 0 100 80" id="gauge-grade-svg">
+                <!-- Track arc -60° to +60° -->
+                <path d="M 20.6 31.0 A 34 34 0 0 1 79.4 31.0" fill="none" stroke="rgba(0, 240, 255, 0.16)" stroke-width="3" stroke-linecap="round"/>
+                <!-- Ticks: -20, -10, 0, +10, +20 -->
+                <line x1="23.5" y1="32.7" x2="20.6" y2="31.0" stroke="var(--lcd-cyan)" stroke-width="1.8"/>
+                <text x="18" y="27" class="terrain-tick-num">-20%</text>
+                <line x1="34.5" y1="21.2" x2="33.0" y2="18.5" stroke="var(--lcd-cyan)" stroke-width="1.5"/>
+                <line x1="50.0" y1="18.0" x2="50.0" y2="12.0" stroke="#FFD600" stroke-width="2.2"/>
+                <text x="50" y="9" class="terrain-tick-num center">0%</text>
+                <line x1="65.5" y1="21.2" x2="67.0" y2="18.5" stroke="var(--lcd-cyan)" stroke-width="1.5"/>
+                <line x1="76.5" y1="32.7" x2="79.4" y2="31.0" stroke="var(--lcd-cyan)" stroke-width="1.8"/>
+                <text x="82" y="27" class="terrain-tick-num">+20%</text>
+                <!-- Aguja Analógica -->
+                <g id="needle-grade" style="transform-origin: 50px 48px; transform: rotate(0deg);">
+                  <line x1="50" y1="48" x2="50" y2="18" stroke="#00F0FF" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="50" y1="23" x2="50" y2="15" stroke="#FF3B30" stroke-width="2.5" stroke-linecap="round"/>
+                  <circle cx="50" cy="48" r="4.5" fill="#02060a" stroke="#00F0FF" stroke-width="1.5"/>
+                </g>
+              </svg>
+            </div>
+            <div class="terrain-gauge-readout">
+              <span class="terrain-val" id="val-grade">0.0%</span>
+            </div>
+          </div>
+
+          <!-- Reloj 2: DESNIVEL ACUMULADO ANÁLOGO -->
+          <div class="terrain-gauge-card">
+            <span class="terrain-gauge-title"><svg class="tic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19l6-9 4 5 3-4 5 8z"/></svg>Desnivel</span>
+            <div class="terrain-dial-wrap">
+              <svg class="terrain-svg-dial" viewBox="0 0 100 80" id="gauge-elev-svg">
+                <!-- Track arc -90° to +90° -->
+                <path d="M 16.0 48.0 A 34 34 0 0 1 84.0 48.0" fill="none" stroke="rgba(0, 240, 255, 0.16)" stroke-width="3" stroke-linecap="round"/>
+                <!-- Ticks: 0, 150, 300, 450, 600 -->
+                <line x1="20.0" y1="48.0" x2="15.0" y2="48.0" stroke="var(--lcd-cyan)" stroke-width="1.8"/>
+                <text x="14" y="60" class="terrain-tick-num">+0</text>
+                <line x1="28.8" y1="26.8" x2="26.0" y2="24.0" stroke="var(--lcd-cyan)" stroke-width="1.5"/>
+                <line x1="50.0" y1="18.0" x2="50.0" y2="12.0" stroke="#FFD600" stroke-width="2.2"/>
+                <text x="50" y="9" class="terrain-tick-num center">300M</text>
+                <line x1="71.2" y1="26.8" x2="74.0" y2="24.0" stroke="var(--lcd-cyan)" stroke-width="1.5"/>
+                <line x1="80.0" y1="48.0" x2="85.0" y2="48.0" stroke="#FF3B30" stroke-width="1.8"/>
+                <text x="86" y="60" class="terrain-tick-num danger">600M</text>
+                <!-- Aguja Analógica -->
+                <g id="needle-elev" style="transform-origin: 50px 48px; transform: rotate(-90deg);">
+                  <line x1="50" y1="48" x2="50" y2="18" stroke="#00F0FF" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="50" y1="23" x2="50" y2="15" stroke="#FF3B30" stroke-width="2.5" stroke-linecap="round"/>
+                  <circle cx="50" cy="48" r="4.5" fill="#02060a" stroke="#00F0FF" stroke-width="1.5"/>
+                </g>
+              </svg>
+            </div>
+            <div class="terrain-gauge-readout">
+              <span class="terrain-val" id="val-elevation">+0</span><span class="terrain-unit">M</span>
+            </div>
+          </div>
+
+          <!-- Reloj 3: ALTITUD ANÁLOGA (0 A 5000 METROS) -->
+          <div class="terrain-gauge-card">
+            <span class="terrain-gauge-title"><svg class="tic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V5"/><path d="M7 10l5-5 5 5"/><path d="M4 20h16"/></svg>Altitud</span>
+            <div class="terrain-dial-wrap">
+              <svg class="terrain-svg-dial" viewBox="0 0 100 80" id="gauge-alt-svg">
+                <!-- Track arc -90° to +90° -->
+                <path d="M 16.0 48.0 A 34 34 0 0 1 84.0 48.0" fill="none" stroke="rgba(0, 240, 255, 0.16)" stroke-width="3" stroke-linecap="round"/>
+                <!-- Ticks: 0, 1.2K, 2.5K, 3.7K, 5K -->
+                <line x1="20.0" y1="48.0" x2="15.0" y2="48.0" stroke="var(--lcd-cyan)" stroke-width="1.8"/>
+                <text x="14" y="60" class="terrain-tick-num">0</text>
+                <line x1="28.8" y1="26.8" x2="26.0" y2="24.0" stroke="var(--lcd-cyan)" stroke-width="1.5"/>
+                <line x1="50.0" y1="18.0" x2="50.0" y2="12.0" stroke="#FFD600" stroke-width="2.2"/>
+                <text x="50" y="9" class="terrain-tick-num center">2.5K</text>
+                <line x1="71.2" y1="26.8" x2="74.0" y2="24.0" stroke="var(--lcd-cyan)" stroke-width="1.5"/>
+                <line x1="80.0" y1="48.0" x2="85.0" y2="48.0" stroke="#FF3B30" stroke-width="1.8"/>
+                <text x="86" y="60" class="terrain-tick-num danger">5K</text>
+                <!-- Aguja Analógica -->
+                <g id="needle-alt" style="transform-origin: 50px 48px; transform: rotate(-90deg);">
+                  <line x1="50" y1="48" x2="50" y2="18" stroke="#00F0FF" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="50" y1="23" x2="50" y2="15" stroke="#FF3B30" stroke-width="2.5" stroke-linecap="round"/>
+                  <circle cx="50" cy="48" r="4.5" fill="#02060a" stroke="#00F0FF" stroke-width="1.5"/>
+                </g>
+              </svg>
+            </div>
+            <div class="terrain-gauge-readout">
+              <span class="terrain-val" id="val-altitude">580</span><span class="terrain-unit">M</span>
+            </div>
+          </div>
+
+          <!-- Reloj 4: HORIZONTE ARTIFICIAL AERONÁUTICO (ATTITUDE INDICATOR) -->
+          <div class="terrain-gauge-card">
+            <span class="terrain-gauge-title"><svg class="tic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M9 16h6"/></svg>Horizonte</span>
+            <div class="terrain-dial-wrap">
+              <svg class="terrain-svg-dial" viewBox="0 0 100 80" id="gauge-attitude-svg">
+                <defs>
+                  <clipPath id="horizon-sphere-clip">
+                    <circle cx="50" cy="42" r="26"/>
+                  </clipPath>
+                </defs>
+                <!-- Esfera Móvil de Cabeceo y Alabeo (Pitch & Roll) -->
+                <g clip-path="url(#horizon-sphere-clip)">
+                  <g id="horizon-attitude-group" style="transform-origin: 50px 42px; transform: rotate(0deg) translateY(0px);">
+                    <!-- Cielo Aeronáutico (Sky) -->
+                    <rect x="0" y="-30" width="100" height="72" fill="#003554"/>
+                    <!-- Tierra Aeronáutica (Ground) -->
+                    <rect x="0" y="42" width="100" height="72" fill="#382314"/>
+                    <!-- Línea de Horizonte Blanca -->
+                    <line x1="0" y1="42" x2="100" y2="42" stroke="#FFFFFF" stroke-width="1.8"/>
+                    <!-- Escala de Cabeceo (Pitch Ladder) -->
+                    <line x1="38" y1="26" x2="62" y2="26" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/>
+                    <text x="34" y="28" fill="rgba(255,255,255,0.6)" font-size="6" font-family="monospace">20</text>
+                    <line x1="42" y1="34" x2="58" y2="34" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/>
+                    <line x1="42" y1="50" x2="58" y2="50" stroke="rgba(255,255,255,0.7)" stroke-width="1.2" stroke-dasharray="3,2"/>
+                    <line x1="38" y1="58" x2="62" y2="58" stroke="rgba(255,255,255,0.7)" stroke-width="1.2" stroke-dasharray="3,2"/>
+                    <text x="34" y="60" fill="rgba(255,255,255,0.6)" font-size="6" font-family="monospace">-20</text>
+                  </g>
+                </g>
+                <!-- Símbolo de Avión Fijo de Referencia (Wings Chevron) -->
+                <line x1="30" y1="42" x2="43" y2="42" stroke="#FFD600" stroke-width="2.4" stroke-linecap="round"/>
+                <circle cx="50" cy="42" r="2.2" fill="#FFD600"/>
+                <line x1="57" y1="42" x2="70" y2="42" stroke="#FFD600" stroke-width="2.4" stroke-linecap="round"/>
+                <polygon points="50,44 47,48 53,48" fill="#FFD600"/>
+                <!-- Bisel y Puntero de Alabeo Superior -->
+                <circle cx="50" cy="42" r="26" fill="none" stroke="rgba(0, 240, 255, 0.35)" stroke-width="1.5"/>
+                <polygon points="50,14 48,17 52,17" fill="#FFD600"/>
+              </svg>
+            </div>
+            <div class="terrain-gauge-readout">
+              <span class="terrain-val" id="val-attitude" style="font-size: 11px;">0° · 0°</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. BARRA DIGITAL DE VIAJE Y VITALES (BMW E46 DIGITAL TRIP COMPUTER STYLE) -->
+        <div class="cluster-digital-trip-bar">
+          <!-- Tiempo Transcurrido -->
+          <div class="trip-cell">
+            <span class="trip-cell-label"><svg class="tic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Tiempo</span>
+            <div class="trip-cell-val-row">
+              <span class="trip-cell-val font-dseg" id="val-time">00:00:00</span>
+            </div>
+          </div>
+
+          <!-- Velocidad Media -->
+          <div class="trip-cell">
+            <span class="trip-cell-label"><svg class="tic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l3-4"/></svg>Vel. media</span>
+            <div class="trip-cell-val-row">
+              <span class="trip-cell-val font-dseg" id="val-avg-speed">0.0</span>
+              <span class="trip-cell-unit">KM/H</span>
+            </div>
+          </div>
+
+          <!-- Velocidad Máxima -->
+          <div class="trip-cell">
+            <span class="trip-cell-label"><svg class="tic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3L5 14h6l-1 7 8-11h-6z"/></svg>Vel. máx</span>
+            <div class="trip-cell-val-row">
+              <span class="trip-cell-val font-dseg" id="val-max-speed">0.0</span>
+              <span class="trip-cell-unit">KM/H</span>
+            </div>
+          </div>
+
+          <!-- Pulso Cardíaco -->
+          <div class="trip-cell">
+            <div class="trip-cell-hdr">
+              <span class="trip-cell-label cyan"><svg class="tic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Pulso</span>
+              <span class="trip-cell-badge" id="hr-zone-tag">Z1</span>
+            </div>
+            <div class="trip-cell-val-row">
+              <span class="trip-cell-val cyan-glow font-dseg" id="val-hr">--</span>
+              <span class="trip-cell-unit">BPM</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hooks ocultos para actualizaciones de métricas en segundo plano -->
+        <div style="display: none;">
+          <span id="val-power">--</span>
+          <span id="val-calories">0</span>
+        </div>
+
+        <!-- 4. MÓDULO MULTIMEDIA AUTOMOTRIZ CON CARÁTULA EN VIVO -->
+        <div class="automotive-media-card">
+          <div class="media-card-header">
+            <div class="media-source-tag">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              <span>Multimedia</span>
+            </div>
+            <span class="media-live-status" id="media-status-badge">Standby</span>
+          </div>
+
+          <div class="media-main-row">
+            <!-- Carátula de la Canción (Cover Art) -->
+            <div class="media-album-art-wrap" onclick="openMusicApp()" title="Abrir el reproductor" style="cursor: pointer;">
+              <img id="media-cover-img" class="media-cover-img" alt="Carátula" style="display: none;" />
+              <div id="media-cover-placeholder" class="media-cover-placeholder">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/></svg>
+              </div>
+            </div>
+
+            <!-- Metadatos de la Pista y Artista -->
+            <div class="media-meta-col" onclick="openMusicApp()" title="Abrir el reproductor" style="cursor: pointer;">
+              <div class="media-track-title" id="media-track-name">Sin reproducción activa</div>
+              <div class="media-artist-name" id="media-artist-name">Abre tu reproductor</div>
+            </div>
+
+            <!-- Recuerdo "STAN LOONA" con Cascada de Polvo Mágico de Hadas (Easter Egg LOONA) -->
+            <div id="media-loona-relic" class="media-loona-relic" style="display: none;" onclick="triggerLoonaBurst()" title="✦ Orbit Forever · STAN LOONA ✦">
+              <!-- Cascada de Polvo Mágico de Hadas -->
+              <div class="fairy-dust-cascade">
+                <span class="fairy-dust-particle fdp-1">✦</span>
+                <span class="fairy-dust-particle fdp-2">✧</span>
+                <span class="fairy-dust-particle fdp-3">•</span>
+                <span class="fairy-dust-particle fdp-4">⋆</span>
+                <span class="fairy-dust-particle fdp-5">✦</span>
+                <span class="fairy-dust-particle fdp-6">✧</span>
+                <span class="fairy-dust-particle fdp-7">•</span>
+                <span class="fairy-dust-particle fdp-8">⋆</span>
+                <span class="fairy-dust-particle fdp-9">✦</span>
+                <span class="fairy-dust-particle fdp-10">✧</span>
+              </div>
+              <!-- Recuerdo Pequeño "STAN LOONA" -->
+              <div class="loona-relic-badge">
+                <span class="relic-sparkle-dot relic-dot-left">✦</span>
+                <span class="relic-title-text">STAN LOONA</span>
+                <span class="relic-sparkle-dot relic-dot-right">✦</span>
+              </div>
+            </div>
+
+            <!-- Controles de Transporte Compactos Integrados en Línea -->
+            <div class="media-transport-inline">
+              <button class="btn-transport-mini" onclick="mediaControl('prev')" title="Anterior">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="3"/></svg>
+              </button>
+              <button id="btn-media-playpause" class="btn-transport-mini btn-transport-play" onclick="mediaControl('playpause')" title="Play / Pausa">
+                <span id="media-play-icon">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </span>
+                <span id="media-play-txt" style="display: none;">PLAY</span>
+              </button>
+              <button class="btn-transport-mini" onclick="mediaControl('next')" title="Siguiente">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="3"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. CONTROLES DE CABINA AUTOMOTRIZ (PULL/PUSH SWITCHES) -->
+        <div class="lcd-cockpit-controls">
+          <!-- Control de Grabación de Ruta (Botón Ignición / Parada) -->
+          <button id="btn-toggle-record" class="btn-cockpit btn-record-start" onclick="toggleRecording()">
+            <span id="icon-record-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </span>
+            <span id="txt-record-btn">Iniciar ruta</span>
+          </button>
+
+          <!-- Bocina Inmediata sin Vibración -->
+          <button class="btn-cockpit btn-horn" onclick="soundHorn()" title="Bocina de Aire Comprimido">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            <span>Bocina</span>
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ====================================================================
+         TAB 2: MAPA 2D TÁCTICO NEGATIVE LCD (100% FUNCIONAL Y OPERATIVO)
+         ==================================================================== -->
+    <section id="tab-map" class="tab-pane">
+      <div id="map-wrapper">
+        <div id="map-view"></div>
+
+        <!-- Barra Superior de Búsqueda y Herramientas del Mapa -->
+        <div id="map-search-bar" class="map-hud-overlay">
+          <div class="map-search-bar-wrap">
+            <div class="map-search-input-box">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="map-search-input" placeholder="Buscar" autocomplete="off" oninput="onSearchInput(this.value)">
+              <button id="map-search-clear" class="btn-clear-search" onclick="clearSearchInput()" style="display: none;">✕</button>
+            </div>
+            <button id="btn-voice-toggle" class="hud-btn-icon voice-active" onclick="toggleVoiceGuidance()" aria-label="Instrucciones de Voz" title="Voz de Navegación">
+              <svg id="icon-voice-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+              <svg id="icon-voice-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="display: none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+            </button>
+            <button class="hud-btn-center" onclick="centerMapOnUser()" aria-label="Centrar en mi ubicación">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Desplegable de Resultados de Búsqueda Offline de Calles e Hitos -->
+        <div id="map-search-results" class="map-search-dropdown" style="display: none;"></div>
+
+        <!-- Banner Superior de Navegación Turn-by-Turn (Dentro de la Ventana) -->
+        <div id="nav-hud-banner" class="nav-hud-top" style="display: none;">
+          <div class="nav-maneuver-icon" id="nav-hud-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          </div>
+          <div class="nav-instruction-wrap">
+            <div class="nav-instruction-dist" id="nav-hud-dist">En 150 m</div>
+            <div class="nav-instruction-street" id="nav-hud-street">Gran Avenida</div>
+          </div>
+          <button class="btn-cancel-nav" onclick="cancelNavigation()" aria-label="Cancelar Navegación">✕</button>
+        </div>
+
+        <!-- Barra Inferior de Navegación: Distancia restante, ETA y Salir (Encima del Navbar) -->
+        <div id="nav-hud-bottom" class="nav-hud-bottom" style="display: none;">
+          <div class="nav-stat-col">
+            <span class="nav-stat-val" id="nav-hud-rem-dist">0 km</span>
+            <span class="nav-stat-lbl">Restante</span>
+          </div>
+          <div class="nav-stat-col">
+            <span class="nav-stat-val" id="nav-hud-rem-eta">-- min</span>
+            <span class="nav-stat-lbl">Tiempo</span>
+          </div>
+          <div class="nav-stat-col">
+            <span class="nav-stat-val" id="nav-hud-llegada">--:--</span>
+            <span class="nav-stat-lbl">Llegada</span>
+          </div>
+          <button class="btn-end-nav" onclick="cancelNavigation()">Salir</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 3: SENSORES BLE Y TELEMETRÍA HARDWARE
+         ==================================================================== -->
+    <section id="tab-sensors" class="tab-pane">
+      <div class="lcd-top-bar" style="margin-bottom: 12px;">
+        <span class="lcd-brand">Sensores</span>
+        <button class="btn-lcd-mini" onclick="scanSensors()">Buscar BLE</button>
+      </div>
+
+      <div class="lcd-card">
+        <div class="card-section-title">Dispositivos asignados</div>
+        <div class="device-list-lcd" id="paired-devices-list"></div>
+        <div class="sensor-pulso-detalle" id="pulso-detalle"></div>
+      </div>
+
+      <div class="lcd-card" style="margin-top: 12px;">
+        <div class="card-section-title">Descubrimiento en tiempo real</div>
+        <div id="discovered-devices-list" style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="sensor-vacio">Toca «Buscar BLE» para encontrar sensores cercanos y asignarlos.</div>
+        </div>
+      </div>
+
+      <div class="lcd-card" style="margin-top: 12px;">
+        <div class="card-section-title">Lector de códigos de la centralita</div>
+        <div class="settings-desc">Tramas que envía tu centralita o display por Bluetooth (protocolos distintos de ADO), con sus códigos en hexadecimal.</div>
+        <pre class="lector-codigos" id="lector-codigos">Sin tramas todavía.</pre>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 4: HISTORIAL (DETALLE DE RUTA CON MAPA LEAFLET Y PULSACIÓN 3s)
+         ==================================================================== -->
+    <section id="tab-history" class="tab-pane">
+      <div id="history-main-view">
+        <div class="lcd-top-bar" style="margin-bottom: 12px;">
+          <div>
+            <span class="lcd-brand">Historial</span>
+            <div class="lcd-silk-hint">
+              Toca una ruta para ver el mapa y los detalles · mantén 3 s para eliminar
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn-lcd-mini" onclick="promptImportRoute()" title="Importar GPX o SuperCycle">Importar</button>
+          </div>
+        </div>
+
+        <!-- Input de archivo oculto para importar rutas externas GPX/FIT -->
+        <input type="file" id="file-import-input" accept=".gpx,.fit,.tcx,.json" style="display: none;" onchange="handleFileImport(event)">
+
+        <div id="history-container" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Se insertan aquí las actividades reales con detección de pulsación de 3s -->
+        </div>
+      </div>
+
+      <!-- DETALLE INTERACTIVO DE ACTIVIDAD (ESTILO STRAVA CON MAPA LEAFLET) -->
+      <div id="ride-detail-view" style="display: none;">
+        <div class="detail-header-bar">
+          <button class="btn-detail-back" onclick="closeRideDetail()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>Volver</span>
+          </button>
+          <span class="detail-title-top" id="detail-date-title">Detalle de ruta</span>
+          <span class="detail-source-badge" id="detail-strava-badge">Local</span>
+        </div>
+
+        <!-- Mapa interactivo de la ruta con Polyline -->
+        <div id="ride-detail-map-container" class="detail-map-box">
+          <div id="ride-detail-map"></div>
+        </div>
+
+        <!-- Grilla de métricas clave -->
+        <div class="detail-metrics-grid">
+          <div class="detail-metric-card">
+            <span class="det-lbl">Distancia</span>
+            <span class="det-val cyan" id="detail-dist">0.00 <span class="det-unit">KM</span></span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="det-lbl">Duración</span>
+            <span class="det-val" id="detail-time">00:00:00</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="det-lbl">Vel. media</span>
+            <span class="det-val" id="detail-avg-speed">0.0 <span class="det-unit">KM/H</span></span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="det-lbl">Vel. máxima</span>
+            <span class="det-val" id="detail-max-speed">0.0 <span class="det-unit">KM/H</span></span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="det-lbl">Frec. cardíaca</span>
+            <span class="det-val red" id="detail-hr">-- <span class="det-unit">BPM</span></span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="det-lbl">Desnivel positivo</span>
+            <span class="det-val" id="detail-elevation">+0 <span class="det-unit">M</span></span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="det-lbl">Calorías</span>
+            <span class="det-val amber" id="detail-calories">0 <span class="det-unit">KCAL</span></span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="det-lbl">Odómetro total</span>
+            <span class="det-val" id="detail-odo">-- <span class="det-unit">KM</span></span>
+          </div>
+        </div>
+
+        <div class="detail-actions-row">
+          <button class="btn-detail-action" onclick="exportCurrentDetailGpx()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Exportar GPX</span>
+          </button>
+          <button class="btn-detail-action strava-btn" id="detail-strava-btn" onclick="syncCurrentDetailStrava()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7.38 14.588h4.172"/></svg>
+            <span id="detail-strava-label">Subir a Strava</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 5: AJUSTES Y MODO LAUNCHER (DIAGRAMACIÓN Y ESPACIADO PULIDO)
+         ==================================================================== -->
+    <section id="tab-settings" class="tab-pane">
+      <div class="lcd-top-bar" style="margin-bottom: 14px;">
+        <span class="lcd-brand">Ajustes</span>
+        <span class="badge-status-metric">100% métrico</span>
+      </div>
+
+      <div class="settings-card">
+        <!-- Modo Launcher del Sistema -->
+        <div class="settings-row">
+          <div class="settings-col-text">
+            <div class="settings-title">Modo Launcher del Sistema</div>
+            <div class="settings-desc">
+              Usa BiciPRO como pantalla de inicio del teléfono mientras pedaleas, o desactívalo para volver al inicio habitual de tu teléfono
+            </div>
+          </div>
+          <button class="btn-settings-action cyan" onclick="toggleLauncherSettings()">
+            Ajustar
+          </button>
+        </div>
+
+        <div class="settings-divider"></div>
+
+        <!-- Strava: conexión real por OAuth (Kotone 2026-10-30) -->
+        <div class="settings-row" id="strava-row">
+          <div class="settings-col-text">
+            <div class="settings-title">Strava</div>
+            <div class="settings-desc" id="strava-status-text">Comprobando…</div>
+          </div>
+          <button class="btn-settings-action cyan" id="strava-action-btn" onclick="stravaAction()">Conectar</button>
+        </div>
+        <div class="strava-creds" id="strava-creds" style="display:none;">
+          <div class="settings-desc">
+            Una sola vez: crea una aplicación en strava.com/settings/api (sitio y dominio de
+            retorno: <b>localhost</b>) y copia aquí sus credenciales.
+          </div>
+          <input class="strava-input" id="strava-client-id" inputmode="numeric" placeholder="Client ID" autocomplete="off">
+          <input class="strava-input" id="strava-client-secret" placeholder="Client Secret" autocomplete="off" spellcheck="false">
+          <button class="btn-settings-action cyan" onclick="stravaSaveCreds()">Guardar y conectar</button>
+        </div>
+
+        <div class="settings-divider"></div>
+
+        <!-- Compartir el último GPX (cualquier app: Strava, Komoot, correo…) -->
+        <div class="settings-row">
+          <div class="settings-col-text">
+            <div class="settings-title">Compartir última ruta</div>
+            <div class="settings-desc">Envía el GPX de la última salida a otra app</div>
+          </div>
+          <button class="btn-settings-action" onclick="shareLatestGpx()">Compartir</button>
+        </div>
+      </div>
+
+      <!-- Equipo (datos verificables, sin cifras de marketing) -->
+      <div class="settings-card" style="margin-top: 14px;">
+        <div class="settings-header-tag">Equipo</div>
+        <div class="settings-desc">Se completa solo con tu teléfono y los sensores que conectes; puedes editarlo.</div>
+        <div class="settings-meta-grid" id="equipo-grid"></div>
+      </div>
+
+      <!-- Mapas -->
+      <div class="settings-card" style="margin-top: 14px;">
+        <div class="settings-header-tag">Mapas</div>
+        <div class="settings-desc">Los mapas y la navegación sin conexión están hechos para Chile, con detalle especial de Santiago (instálalos con el script mapas/instalar-mapa-chile.sh; ver README).</div>
+      </div>
+
+      <!-- Developer Credit Badge -->
+      <div class="developer-credit-card">
+        <div class="dev-credit-author">Desarrollado por Javiera Navarrete</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ====================================================================
+       BOTTOM NAVIGATION BAR (ÍCONOS CON DISEÑO LCD Y TIPOGRAFÍA IDÉNTICA)
+       ==================================================================== -->
+  <nav id="bottom-navbar">
+    <div class="nav-tab active" onclick="switchTab('tab-dashboard')">
+      <svg class="nav-lcd-icon" viewBox="0 0 24 24"><polygon points="3 3 21 3 21 21 3 21 3 3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      <span class="nav-tab-label">Computadora</span>
+    </div>
+    <div class="nav-tab" onclick="switchTab('tab-map')">
+      <svg class="nav-lcd-icon" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      <span class="nav-tab-label">Mapa</span>
+    </div>
+    <div class="nav-tab" onclick="switchTab('tab-sensors')">
+      <svg class="nav-lcd-icon" viewBox="0 0 24 24"><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M12 18v-4l-3-3 5-4 4 3h3"/></svg>
+      <span class="nav-tab-label">Sensores</span>
+    </div>
+    <div class="nav-tab" onclick="switchTab('tab-history')">
+      <svg class="nav-lcd-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+      <span class="nav-tab-label">Historial</span>
+    </div>
+    <div class="nav-tab" onclick="switchTab('tab-settings')">
+      <svg class="nav-lcd-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span class="nav-tab-label">Ajustes</span>
+    </div>
+  </nav>
+
+  <!-- ====================================================================
+       MODAL TERMINAR RUTA (TIPOGRAFÍA IDÉNTICA NEGATIVE LCD)
+       ==================================================================== -->
+  <div id="finish-ride-modal" class="lcd-modal-overlay" style="display: none;">
+    <div class="lcd-modal-box">
+      <div class="lcd-modal-title">Finalizar ruta</div>
+      <div class="lcd-modal-body">
+        ¿Deseas guardar la ruta en el historial y sincronizarla automáticamente con Strava?
+      </div>
+      <div class="lcd-modal-actions">
+        <button class="btn-modal-cancel" onclick="dismissFinishModal()">Continuar</button>
+        <button class="btn-modal-confirm" onclick="confirmFinishRide()">Guardar y terminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL CONFIRMAR ELIMINACIÓN DE REGISTRO (POR PULSACIÓN DE 3s)
+       ==================================================================== -->
+  <div id="delete-ride-modal" class="lcd-modal-overlay" style="display: none;">
+    <div class="lcd-modal-box">
+      <div class="lcd-modal-title" style="color: #ff3b30;">Eliminar actividad</div>
+      <div class="lcd-modal-body" id="delete-ride-modal-text">
+        ¿Deseas eliminar permanentemente este registro de ruta del historial?
+      </div>
+      <div class="lcd-modal-actions">
+        <button class="btn-modal-cancel" onclick="dismissDeleteRideModal()">Cancelar</button>
+        <button class="btn-modal-confirm btn-danger" onclick="confirmDeleteRideAction()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/leaflet.js"></script>
+  <script src="vendor/mapas/protomaps-leaflet.js"></script>
+  <script src="js/mapas.js"></script>
+  <script src="js/chile-database.js"></script>
+  <script src="js/direcciones.js"></script>
+  <script src="js/navigation.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/enlace.js"></script>
+  <script src="js/sensores.js"></script>
+</body>
+</html>

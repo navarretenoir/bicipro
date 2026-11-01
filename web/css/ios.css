@@ -1,0 +1,520 @@
+/* =============================================================================
+   ADO O260T · LENGUAJE DE DISEÑO DE CLIMA (~/Proyectos/CLIMA/ui/style.css), aplicado a la app de la bici.
+   Las mismas piezas: cielo degradado por condición y hora (lo trae el enlace con Clima), vidrio oscuro
+   esmerilado (--glass + filete de luz), tarjeta = encabezado 12 px semibold gris en mayúsculas con ícono de
+   trazo + cifra grande de SF Pro Display; colores de sistema de Apple; pestañas traslúcidas.
+   SF Pro → Inter (OFL) en Android: SF Pro sólo tiene licencia para equipos Apple.
+   Va DESPUÉS de style.css: piel y maquetación, cero lógica. Kotone 2026-10-31.
+   Respaldo de la versión LCD: ../../.respaldo/pre-ios-20261031.tar.gz
+   ============================================================================= */
+@font-face { font-family: "SF Pro Text";    src: url("../vendor/fonts/Inter.ttf") format("truetype"); font-weight: 100 900; font-display: block; }
+@font-face { font-family: "SF Pro Display"; src: url("../vendor/fonts/Inter.ttf") format("truetype"); font-weight: 100 900; font-display: block; }
+
+:root {
+  /* tokens de Clima, idénticos */
+  --glass: rgba(20, 32, 52, .26);
+  --glass-hi: rgba(255, 255, 255, .10);
+  --sep: rgba(255, 255, 255, .16);
+  --txt: #fff; --txt-dim: rgba(255, 255, 255, .60); --txt-faint: rgba(255, 255, 255, .42);
+  --radius: 16px;
+  --blur: blur(26px) saturate(160%);
+  --fill: rgba(118, 128, 150, .24);          /* relleno de controles de iOS sobre vidrio */
+  --ios-blue: #0A84FF; --ios-cyan: #64D2FF; --ios-green: #30D158; --ios-orange: #FF9F0A;
+  --ios-yellow: #FFD60A; --ios-red: #FF453A;
+  --display: "SF Pro Display", "SF Pro", -apple-system, system-ui, sans-serif;
+  --text: "SF Pro Text", "SF Pro", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  /* re-mapeo de los tokens de style.css: todo lo que los usa hereda la piel */
+  --lcd-body-bg: transparent; --lcd-glass-bg: transparent; --lcd-housing-bg: transparent;
+  --lcd-cyan: var(--ios-cyan); --lcd-cyan-glow: transparent; --lcd-ghost: transparent;
+  --lcd-bezel-border: var(--sep); --lcd-white: #fff; --lcd-silk: var(--txt-dim); --lcd-silk-dim: var(--txt-faint);
+  --lcd-amber: var(--ios-orange); --lcd-red: var(--ios-red); --lcd-green: var(--ios-green);
+  --sobria-line: var(--sep); --sobria-fill: var(--fill);
+  --font-silk: var(--text); --font-seg: var(--display); --font-seg-up: var(--display); --font-alpha: var(--text);
+  --font-tech: var(--display);
+}
+
+/* ---------------------------------------------------------------- cielo (mismos degradados que Clima) */
+html { background: #1d3557; }
+body {
+  background-color: #1d3557 !important;
+  background-image: linear-gradient(180deg, #0e1526 0%, #1b2740 50%, #2c3b58 100%) !important;
+  background-attachment: fixed !important; background-repeat: no-repeat !important; background-size: cover !important;
+  transition: background-image 1.4s ease;
+  font-family: var(--text) !important; color: var(--txt); -webkit-font-smoothing: antialiased;
+}
+body.sky-clear-day   { background-image: linear-gradient(180deg, #1f6fd1 0%, #3b8de4 38%, #69aeef 72%, #9ccdf6 100%) !important; }
+body.sky-clear-night { background-image: linear-gradient(180deg, #050b1f 0%, #0e1c42 45%, #203565 80%, #2c4479 100%) !important; }
+body.sky-cloud-day   { background-image: linear-gradient(180deg, #4f6c93 0%, #6c88ad 45%, #8fa6c4 100%) !important; }
+body.sky-cloud-night { background-image: linear-gradient(180deg, #0e1526 0%, #1b2740 50%, #2c3b58 100%) !important; }
+body.sky-rain        { background-image: linear-gradient(180deg, #26374b 0%, #384c64 50%, #4f637c 100%) !important; }
+body.sky-snow        { background-image: linear-gradient(180deg, #5e6f88 0%, #8293ab 50%, #a9b8cb 100%) !important; }
+body.sky-fog         { background-image: linear-gradient(180deg, #4d5866 0%, #69737f 45%, #8c949e 100%) !important; }
+body.sky-storm       { background-image: linear-gradient(180deg, #15192a 0%, #262c40 50%, #3a4157 100%) !important; }
+/* en cielos claros el vidrio oscurece un poco más, como en Clima de día */
+body.sky-clear-day, body.sky-cloud-day, body.sky-snow, body.sky-fog { --glass: rgba(20, 32, 52, .30); }
+
+button, input, select, textarea { font-family: var(--text) !important; }
+#app-container, .tab-pane, #tab-sensors, #tab-history, #tab-settings, .unified-cockpit { background: transparent !important; }
+*, *::before, *::after { text-shadow: none !important; }
+
+/* cifras: SF Pro Display tabular */
+.font-dseg, .dseg-live, .indicator-val, .trip-cell-val, .terrain-val, .det-val, .nav-stat-val, #val-time, .clock-val {
+  font-family: var(--display) !important; font-style: normal !important;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.01em !important;
+}
+.dseg-ghost { display: none !important; }
+
+/* ---------------------------------------------------------------- vidrio (tarjetas = .card/.tile de Clima) */
+.lcd-screen-glass, .lcd-card, .lcd-speedometer-box, .terrain-gauge-card, .trip-cell, .settings-card,
+.automotive-media-card, .lcd-sensor-status-card, .cluster-odometer-bar, .device-item-lcd,
+.detail-metric-card, .detail-header-bar, .lcd-odo-tile, .lcd-cell, .empty-history-lcd, .sensor-card,
+.lcd-call-card, .hud-sms-banner {
+  background: var(--glass) !important; background-image: none !important;
+  border: 0 !important; border-radius: var(--radius) !important;
+  box-shadow: inset 0 0.5px 0 var(--glass-hi) !important;
+  backdrop-filter: var(--blur) !important; -webkit-backdrop-filter: var(--blur) !important;
+}
+.lcd-screen-glass::before, .lcd-screen-glass::after, .lcd-speedometer-box::before, .lcd-speedometer-box::after,
+.cluster-odometer-bar::before, .cluster-odometer-bar::after, .terrain-gauge-card::before, .terrain-gauge-card::after,
+.trip-cell::before, .trip-cell::after { display: none !important; }
+
+/* encabezado de tarjeta = .tile .th de Clima */
+.card-section-title, .terrain-gauge-title, .trip-cell-label, .odo-box-label, .sensor-card-title,
+.settings-header-tag, .meta-label, .det-lbl, .nav-stat-lbl, .lcd-sensor-status-card .sensor-title, .media-source-tag {
+  display: inline-flex !important; align-items: center; gap: 5px;
+  font-family: var(--text) !important; font-size: 12px !important; font-weight: 600 !important;
+  color: var(--txt-dim) !important; letter-spacing: .4px !important; text-transform: uppercase; white-space: nowrap;
+}
+.tic { width: 13px; height: 13px; flex: 0 0 auto; color: var(--txt-dim); }
+.odo-box-label.cyan, .trip-cell-label.cyan { color: var(--txt-dim) !important; }
+
+/* ---------------------------------------------------------------- maquetación del cockpit (sin huecos) */
+.unified-cockpit {
+  justify-content: flex-start !important; gap: 10px !important;
+  height: auto !important; min-height: 0 !important; flex: 1 1 auto !important;
+  padding: 0 12px 12px !important; overflow: hidden;
+}
+.lcd-top-bar { padding: 6px 16px 8px !important; }
+.lcd-speedometer-box { height: auto !important; min-height: 0 !important; max-height: none !important; flex: 1 1 auto !important; padding: 10px 10px 6px !important; justify-content: space-between !important; }
+.cluster-gauge-container { height: auto !important; aspect-ratio: 360 / 252; max-height: 290px; width: 100%; margin: auto; flex: 0 1 auto; }
+.cluster-terrain-console { height: auto !important; min-height: 0 !important; max-height: none !important; gap: 10px !important; }
+.cluster-digital-trip-bar { height: auto !important; min-height: 0 !important; max-height: none !important; gap: 10px !important; }
+.automotive-media-card { height: auto !important; min-height: 0 !important; max-height: none !important; padding: 11px 14px 12px !important; gap: 8px !important; }
+.lcd-cockpit-controls { height: 54px !important; min-height: 54px !important; max-height: 54px !important; gap: 10px !important; grid-template-columns: 1.4fr 1fr !important; }
+.cluster-odometer-bar { padding: 10px 14px !important; gap: 10px !important; align-items: center !important; }
+
+/* ---------------------------------------------------------------- barra superior (= barra de estado de iOS) */
+.lcd-top-bar { background: transparent !important; border: 0 !important; box-shadow: none !important; backdrop-filter: none !important; }
+.lcd-top-bar .lcd-brand { color: #fff !important; font: 700 17px var(--text) !important; letter-spacing: -0.02em !important; text-transform: none !important; gap: 6px; }
+.indicator-item { background: transparent !important; border: 0 !important; padding: 0 3px !important; gap: 3px; }
+.indicator-item svg { color: var(--txt-dim); }
+.indicator-val { color: #fff !important; font: 600 13px var(--text) !important; }
+.cyan-tint .indicator-val, .cyan-tint svg { color: var(--ios-green) !important; }
+.amber-tint .indicator-val { color: #fff !important; }
+
+/* ---------------------------------------------------------------- velocímetro (héroe, como la temperatura de Clima) */
+.cluster-telltale-bar { border: 0 !important; background: transparent !important; padding: 0 2px !important; }
+.telltale-item, .telltale-gear {
+  background: var(--fill) !important; border: 0 !important; border-radius: 999px !important;
+  color: var(--txt-dim) !important; font: 600 12px var(--text) !important; padding: 3px 10px !important; letter-spacing: 0 !important;
+}
+.telltale-gear { color: #fff !important; }
+.telltale-gear .gear-badge { color: var(--ios-cyan) !important; }
+.telltale-rec.active, .telltale-rec.recording, .telltale-rec.on { color: #fff !important; background: var(--ios-red) !important; }
+.telltale-blinker { color: var(--txt-faint) !important; opacity: .35; }
+.telltale-blinker.active, .telltale-blinker.on, .telltale-blinker.blink { color: var(--ios-green) !important; opacity: 1; }
+
+#speedo-gauge-svg .gauge-arc-track { stroke: rgba(255, 255, 255, .14) !important; stroke-width: 6 !important; }
+#speedo-gauge-svg .gauge-arc-active { stroke-width: 6 !important; }
+#gauge-glow-grad stop:nth-child(1) { stop-color: #64D2FF; }
+#gauge-glow-grad stop:nth-child(2) { stop-color: #0A84FF; }
+#gauge-glow-grad stop:nth-child(3) { stop-color: #FFD60A; }
+#gauge-glow-grad stop:nth-child(4) { stop-color: #FF453A; }
+#speedo-gauge-svg line { stroke: rgba(255, 255, 255, .50); }
+#speedo-gauge-svg circle { stroke: transparent !important; }
+#speedo-gauge-svg .gauge-num { fill: rgba(255, 255, 255, .80) !important; font-family: var(--display) !important; font-weight: 400 !important; font-style: normal !important; font-size: 19px; }
+#speedo-gauge-svg .gauge-num.peak { fill: #fff !important; }
+#speedo-gauge-svg .gauge-num.danger { fill: var(--ios-red) !important; }
+#gauge-needle-group .needle-inner { display: none; }          /* sólo la punta exterior: no tapa los números */
+#gauge-needle-group polygon:not(.needle-inner) { fill: #fff; }
+
+.cluster-speed-digital-hub { width: auto !important; height: auto !important; }
+.speed-digital-value-box { gap: 0 !important; align-items: baseline !important; height: auto !important; }
+.speed-dseg-cell, .speed-dseg-dot { width: auto !important; min-width: 0 !important; height: auto !important; background: none !important; border: 0 !important; box-shadow: none !important; }
+.speed-dseg-cell .dseg-live:empty { display: none !important; }
+.speed-dseg-cell .dseg-live, .speed-dseg-dot .dseg-live { position: static !important; color: #fff !important; font-weight: 200 !important; font-size: 66px !important; line-height: .95 !important; letter-spacing: -0.03em !important; }
+.speed-dseg-dot .dseg-live, .speed-dseg-cell:last-child .dseg-live { font-size: 30px !important; font-weight: 300 !important; color: var(--txt-dim) !important; }
+.speed-digital-unit { font: 600 13px var(--text) !important; color: var(--txt-dim) !important; letter-spacing: .4px !important; margin-top: 4px !important; }
+
+/* ---------------------------------------------------------------- odómetro (cifras digitales) */
+.cluster-odo-box { gap: 8px !important; align-items: center !important; }
+.odo-mechanical-window { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+.odo-mechanical-window::after, .odo-mechanical-window::before { display: none !important; }
+.odo-mechanical-window .odo-drum-wheel, .odo-mechanical-window .odo-drum-wheel.decimal { background: none !important; border: 0 !important; box-shadow: none !important; width: 9.6px !important; height: 20px !important; }
+.odo-mechanical-window .odo-drum-wheel .odo-digit-strip span { color: #fff !important; font: 500 15px/20px var(--display) !important; font-variant-numeric: tabular-nums; height: 20px !important; letter-spacing: 0 !important; }
+.odo-mechanical-window .odo-drum-wheel.decimal .odo-digit-strip span { color: var(--txt-faint) !important; font-weight: 500 !important; }
+.odo-mechanical-window.highlight .odo-drum-wheel .odo-digit-strip span { color: #fff !important; }
+.odo-box-unit { color: var(--txt-dim) !important; font: 500 13px var(--text) !important; }
+.odo-box-unit.cyan-glow { color: var(--txt-dim) !important; }
+.cluster-odo-divider { background: var(--sep) !important; width: .5px !important; align-self: stretch; }
+
+/* ---------------------------------------------------------------- tarjetas de terreno y viaje (= .tile de Clima) */
+.terrain-gauge-card { padding: 10px 10px 10px 12px !important; align-items: flex-start !important; gap: 2px; }
+.terrain-dial-wrap { height: 44px !important; width: 100%; opacity: .95; }
+.terrain-tick-num { display: none; }                           /* rótulos de 4 px: ilegibles */
+.terrain-svg-dial path[stroke] { stroke: rgba(255, 255, 255, .18) !important; }
+.terrain-svg-dial line[stroke="var(--lcd-cyan)"], .terrain-svg-dial line[stroke="#FFD600"], .terrain-svg-dial line[stroke="#FF3B30"] { stroke: rgba(255, 255, 255, .45) !important; }
+.terrain-svg-dial g[id^="needle"] line { stroke: #fff !important; }
+.terrain-svg-dial g[id^="needle"] circle { fill: #fff !important; stroke: none !important; r: 3; }
+.terrain-gauge-readout { align-self: flex-start; }
+.terrain-val { color: #fff !important; font: 400 22px var(--display) !important; }
+#val-attitude { font-size: 17px !important; }
+.terrain-unit, .trip-cell-unit, .det-unit { color: #fff !important; font: 500 13px var(--text) !important; margin-left: 2px; }
+.trip-cell { padding: 10px 10px 11px 12px !important; gap: 4px; justify-content: flex-start !important; }
+.trip-cell-val-row { align-items: baseline !important; gap: 2px; }
+.trip-cell-val { color: #fff !important; font: 400 22px var(--display) !important; }
+#val-time { font-size: 19px !important; }
+.trip-cell-hdr { width: 100%; justify-content: space-between; }
+.trip-cell-badge { background: var(--fill) !important; color: #fff !important; border: 0 !important; border-radius: 999px !important; font: 600 10px var(--text) !important; padding: 1px 7px !important; }
+
+/* ---------------------------------------------------------------- multimedia (= reproductor de iOS) */
+.media-card-header { justify-content: space-between; }
+.media-source-tag { background: none !important; padding: 0 !important; }
+.media-source-tag svg { width: 13px; height: 13px; }
+.media-track-title { color: #fff !important; font: 600 15px var(--text) !important; }
+.media-artist-name { color: var(--txt-dim) !important; font: 400 13px var(--text) !important; }
+.media-live-status, .badge-status-active, .sensor-honest-badge {
+  background: var(--fill) !important; color: var(--txt-dim) !important; border: 0 !important; border-radius: 999px !important;
+  font: 600 11px var(--text) !important; letter-spacing: 0 !important; padding: 2px 9px !important; text-transform: none !important;
+}
+.btn-transport-mini { background: transparent !important; border: 0 !important; color: #fff !important; box-shadow: none !important; width: 40px !important; height: 40px !important; }
+.btn-transport-mini.btn-transport-play { background: #fff !important; color: #000 !important; border-radius: 50% !important; }
+.media-cover-placeholder, .media-cover-img { background: var(--fill) !important; border: 0 !important; border-radius: 10px !important; color: var(--txt-dim) !important; box-shadow: none !important; }
+
+/* ---------------------------------------------------------------- botones (iOS) */
+.btn-record-start, .btn-cockpit, .btn-horn, .btn-lcd-action, .btn-settings-action, .btn-lcd-mini,
+.btn-detail-action, .btn-modal-confirm, .btn-modal-cancel, .btn-end-nav, .btn-cancel-nav, .btn-detail-back {
+  font-family: var(--text) !important; font-weight: 600 !important; letter-spacing: 0 !important; text-transform: none !important;
+  border: 0 !important; border-radius: 14px !important; box-shadow: none !important;
+}
+.btn-cockpit { font-size: 17px !important; gap: 8px; }
+.btn-record-start { background: var(--ios-green) !important; color: #fff !important; }
+.btn-record-start * { color: #fff !important; }
+.btn-record-start.recording, .btn-record-start.active, .btn-record-start.btn-record-stop { background: var(--ios-red) !important; }
+.btn-horn { background: var(--glass) !important; color: #fff !important; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); box-shadow: inset 0 0.5px 0 var(--glass-hi) !important; }
+.btn-horn * { color: #fff !important; }
+.btn-settings-action, .btn-settings-action.cyan, .btn-lcd-mini, .btn-lcd-action, .btn-detail-action {
+  background: var(--fill) !important; color: #fff !important; border-radius: 999px !important; font-size: 15px !important; padding: 8px 16px !important;
+}
+
+/* ---------------------------------------------------------------- listas (sensores, ajustes, historial) */
+.settings-card, .lcd-sensor-status-card { overflow: hidden; }
+.settings-title, .settings-item-title, .sensor-name-col, .dev-name, .search-item-name, .empty-history-title {
+  color: #fff !important; font-weight: 600 !important; letter-spacing: -0.01em !important; text-transform: none !important;
+}
+.settings-desc, .settings-item-desc, .sensor-mac, .dev-meta, .search-item-info, .empty-history-sub { color: var(--txt-dim) !important; }
+.settings-row + .settings-row, .sensor-row + .sensor-row, .device-item-lcd + .device-item-lcd { border-color: var(--sep) !important; }
+.settings-divider { background: var(--sep) !important; border-color: var(--sep) !important; }
+.meta-val { color: #fff !important; font-weight: 500 !important; }
+#history-container .lcd-card { padding: 12px 14px !important; margin-bottom: 10px !important; }
+#history-container .lcd-card div[style*="#03080b"] { background: rgba(0, 0, 0, .14) !important; border: 0 !important; border-radius: 10px !important; padding: 7px 4px !important; }
+#history-container .lcd-card div[style*="font-size: 7px"] { font-size: 10px !important; font-weight: 600 !important; color: var(--txt-dim) !important; }
+#history-container .lcd-card div[style*="font-size: 13px"] { font-size: 19px !important; font-weight: 400 !important; font-family: var(--display) !important; color: #fff !important; }
+#history-container .lcd-card div[style*="font-size: 6.5px"] { font-size: 10px !important; color: var(--txt-faint) !important; }
+#history-container .lcd-card span[style*="font-size: 11px"] { font-size: 15px !important; font-weight: 600 !important; color: #fff !important; letter-spacing: 0 !important; }
+#history-container .lcd-card span[style*="font-size: 8px"] { font-size: 11px !important; font-weight: 600 !important; background: var(--fill) !important; color: #fff !important; border-radius: 999px !important; padding: 3px 9px !important; }
+
+/* Strava: botón de una sola subida */
+.hist-strava { font: 600 11px var(--text); border: 0; border-radius: 999px; padding: 4px 10px; background: rgba(252, 76, 2, .22); color: #FF7A3D; cursor: pointer; }
+.hist-strava-sincronizada { background: rgba(48, 209, 88, .20); color: var(--ios-green); cursor: default; }
+.hist-strava-subiendo { background: var(--fill); color: var(--txt-dim); cursor: default; }
+.hist-strava-singpx { background: var(--fill); color: var(--txt-faint); cursor: default; }
+.hist-strava-fallo { background: rgba(255, 69, 58, .20); color: var(--ios-red); }
+.btn-detail-action.strava-btn { color: #FF7A3D !important; }
+.btn-detail-action.strava-btn.strava-ok { color: var(--ios-green) !important; }
+.btn-detail-action.strava-btn:disabled { opacity: .55; cursor: default; }
+.btn-detail-action.strava-btn.strava-ok:disabled { opacity: 1; }
+
+/* ---------------------------------------------------------------- barra de pestañas traslúcida */
+#bottom-navbar {
+  background: rgba(16, 22, 36, .55) !important; border-top: .5px solid var(--sep) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important; -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+}
+.nav-tab { background: transparent !important; border: 0 !important; }
+.nav-tab.active::before, .nav-tab.active::after { display: none !important; }
+.nav-tab .nav-lcd-icon { stroke: var(--txt-faint) !important; color: var(--txt-faint) !important; opacity: 1 !important; filter: none !important; stroke-linecap: round; stroke-linejoin: round; }
+.nav-tab.active .nav-lcd-icon { stroke: #fff !important; color: #fff !important; }
+.nav-tab-label { font: 500 10px var(--text) !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--txt-faint) !important; }
+.nav-tab.active .nav-tab-label { color: #fff !important; }
+
+/* ---------------------------------------------------------------- mapa */
+.map-search-input-box, .hud-btn-center, .hud-btn-icon, .map-search-dropdown, .nav-hud-top, .nav-hud-bottom {
+  background: rgba(30, 40, 62, .72) !important; border: 0 !important; color: #fff !important;
+  backdrop-filter: var(--blur) !important; -webkit-backdrop-filter: var(--blur) !important;
+}
+.map-search-input-box { border-radius: 11px !important; }
+.map-search-input-box input { color: #fff !important; font-family: var(--text) !important; }
+.map-search-dropdown { border-radius: 14px !important; }
+.nav-hud-top, .nav-hud-bottom { border-radius: 18px !important; }
+.nav-instruction-dist { color: #fff !important; font-weight: 700 !important; }
+.nav-instruction-street { color: var(--txt-dim) !important; }
+
+/* ---------------------------------------------------------------- hojas modales (alerta iOS) */
+.lcd-modal-overlay { background: rgba(0, 0, 0, .40) !important; backdrop-filter: blur(6px) !important; }
+.lcd-modal-box { background: rgba(36, 42, 58, .86) !important; border: 0 !important; border-radius: 16px !important; backdrop-filter: var(--blur) !important; -webkit-backdrop-filter: var(--blur) !important; box-shadow: 0 20px 60px rgba(0, 0, 0, .45) !important; }
+.lcd-modal-title { font: 600 17px var(--text) !important; letter-spacing: 0 !important; text-transform: none !important; color: #fff !important; }
+.lcd-modal-body { color: var(--txt-dim) !important; font-size: 14px !important; }
+.btn-modal-confirm { background: transparent !important; color: var(--ios-red) !important; }
+.btn-modal-cancel { background: transparent !important; color: var(--ios-blue) !important; }
+.app-notice { background: rgba(36, 42, 58, .92) !important; border: 0 !important; border-radius: 14px !important; backdrop-filter: var(--blur); }
+
+/* filas de 4 columnas: el ícono no cabe junto a la etiqueta → sólo etiqueta compacta */
+.cluster-terrain-console .tic, .cluster-digital-trip-bar .tic { display: none; }
+.cluster-terrain-console .terrain-gauge-title, .cluster-digital-trip-bar .trip-cell-label { font-size: 11px !important; letter-spacing: .2px !important; }
+.terrain-gauge-card, .trip-cell { padding-left: 9px !important; padding-right: 6px !important; }
+#hr-zone-tag { margin-left: auto; }
+
+/* zonas de velocidad: anillo interior fijo (amarillo 25–30, rojo ≥ 30) + arco y punta de aguja del color de la zona actual */
+#speedo-gauge-svg .gauge-zone { opacity: .9; }
+#speedo-gauge-svg .gauge-arc-active { stroke: #fff !important; }
+#speedo-gauge-svg.z-yellow .gauge-arc-active { stroke: #FFD60A !important; }
+#speedo-gauge-svg.z-red .gauge-arc-active { stroke: #FF453A !important; }
+#speedo-gauge-svg.z-yellow #gauge-needle-group polygon:not(.needle-inner) { fill: #FFD60A; }
+#speedo-gauge-svg.z-red #gauge-needle-group polygon:not(.needle-inner) { fill: #FF453A; }
+.speed-dseg-cell .dseg-live { transition: none !important; }
+#speedo-gauge-svg.z-yellow ~ .cluster-speed-digital-hub .speed-dseg-cell:not(:last-child) .dseg-live { color: #FFD60A !important; }
+#speedo-gauge-svg.z-red ~ .cluster-speed-digital-hub .speed-dseg-cell:not(:last-child) .dseg-live { color: #FF453A !important; }
+
+/* =============================================================================
+   NEGRO OLED (pedido de Javiera, 31-oct): fondo #000 puro; el cielo de Clima queda como un tinte
+   tenue arriba que se funde a negro. Tarjetas en grafito de iOS oscuro (secondarySystemBackground),
+   que sobre negro se leen mejor que el vidrio azulado.
+   ============================================================================= */
+:root { --glass: rgba(28, 28, 30, .92); --glass-hi: rgba(255, 255, 255, .07); --sep: rgba(84, 84, 88, .55); --fill: rgba(118, 118, 128, .24); }
+html { background: #000 !important; }
+body { background-color: #000 !important; background-image: linear-gradient(180deg, rgba(44, 59, 88, .30) 0%, #000 42%) !important; }
+body.sky-clear-day   { background-image: linear-gradient(180deg, rgba(31, 111, 209, .34) 0%, #000 42%) !important; }
+body.sky-clear-night { background-image: linear-gradient(180deg, rgba(32, 53, 101, .34) 0%, #000 42%) !important; }
+body.sky-cloud-day   { background-image: linear-gradient(180deg, rgba(79, 108, 147, .32) 0%, #000 42%) !important; }
+body.sky-cloud-night { background-image: linear-gradient(180deg, rgba(44, 59, 88, .30) 0%, #000 42%) !important; }
+body.sky-rain        { background-image: linear-gradient(180deg, rgba(56, 76, 100, .34) 0%, #000 42%) !important; }
+body.sky-snow        { background-image: linear-gradient(180deg, rgba(130, 147, 171, .28) 0%, #000 42%) !important; }
+body.sky-fog         { background-image: linear-gradient(180deg, rgba(105, 115, 127, .28) 0%, #000 42%) !important; }
+body.sky-storm       { background-image: linear-gradient(180deg, rgba(58, 65, 87, .34) 0%, #000 42%) !important; }
+body.sky-clear-day, body.sky-cloud-day, body.sky-snow, body.sky-fog { --glass: rgba(28, 28, 30, .92); }
+#bottom-navbar { background: rgba(0, 0, 0, .80) !important; }
+.btn-horn { background: rgba(28, 28, 30, .92) !important; }
+
+/* =============================================================================
+   ESCALA TIPOGRÁFICA DE iOS (la misma de Clima): Large Title 28/700 · Headline 17/600 · Body 17 ·
+   Subheadline 15 · Footnote 13 · Caption 12/11. Unidades en minúscula, como iOS («km/h», «m»).
+   ============================================================================= */
+#tab-sensors .lcd-brand, #tab-history .lcd-brand, #tab-settings .lcd-brand { font: 700 28px var(--display) !important; letter-spacing: -0.02em !important; }
+.lcd-silk-hint { font: 400 13px var(--text) !important; color: var(--txt-dim) !important; text-transform: none !important; letter-spacing: 0 !important; margin-top: 2px; }
+.dev-name, .sensor-name-col, .search-item-name { font: 600 16px var(--text) !important; color: #fff !important; }
+.dev-meta, .sensor-mac, .search-item-info { font: 400 12px var(--text) !important; color: var(--txt-dim) !important; letter-spacing: 0 !important; }
+.settings-title, .settings-item-title { font: 600 16px var(--text) !important; }
+.settings-desc, .settings-item-desc { font: 400 13px/1.35 var(--text) !important; }
+.meta-label { display: inline !important; font: 400 15px var(--text) !important; color: var(--txt-dim) !important; text-transform: none !important; letter-spacing: 0 !important; }
+.meta-val { font: 500 15px var(--text) !important; }
+.dev-credit-author { font: 400 13px var(--text) !important; color: var(--txt-faint) !important; letter-spacing: 0 !important; }
+#tab-sensors div[style*="font-size: 11px"], #tab-sensors .device-list-lcd > div:not([class]) { font: 400 13px var(--text) !important; color: var(--txt-dim) !important; }
+.telltale-gear, .telltale-gear * { font-weight: 600 !important; }
+.btn-lcd-mini { font: 600 15px var(--text) !important; text-transform: none !important; }
+.trip-cell-unit, .terrain-unit, .odo-box-unit, .speed-digital-unit, .det-unit, .nav-stat-lbl { text-transform: lowercase !important; }
+#history-container .lcd-card div[style*="font-size: 7px"], #history-container .lcd-card div[style*="font-size: 6.5px"] { font-size: 11px !important; }
+#history-container .lcd-card div[style*="font-size: 6.5px"] { text-transform: lowercase; }
+
+/* ---- cifras que no cabían ---- */
+#val-time { font-size: 16px !important; letter-spacing: -0.03em !important; }
+#val-attitude { font-size: 15px !important; white-space: nowrap; }
+.trip-cell-val, .terrain-val { white-space: nowrap; }
+
+/* ---- odómetro: rótulo arriba y cifras abajo (como una tarjeta de Clima); tambores sin encoger ---- */
+.cluster-odo-box { flex-direction: column !important; align-items: flex-start !important; gap: 4px !important; flex: 1 1 0 !important; min-width: 0; }
+.cluster-odo-box .odo-mechanical-window { display: inline-flex !important; align-items: baseline; }
+.odo-mechanical-window .odo-drum-wheel, .odo-mechanical-window .odo-drum-wheel.decimal { flex: 0 0 10px !important; width: 10px !important; min-width: 10px !important; }
+.odo-mechanical-window .odo-drum-wheel .odo-digit-strip span { font-size: 17px !important; }
+.cluster-odo-box .odo-box-unit { position: absolute; right: 14px; bottom: 12px; }
+.cluster-odo-box { position: relative; }
+.btn-lcd-mini, .btn-settings-action { white-space: nowrap !important; flex: 0 0 auto; }
+#tab-sensors .lcd-brand { font-size: 24px !important; }
+
+/* carátula: sin el marco cian/sombra heredado del LCD; esquinas redondeadas como en el reproductor de iOS */
+.media-album-art-wrap { background: none !important; border: 0 !important; box-shadow: none !important; outline: 0 !important; padding: 0 !important; border-radius: 10px !important; overflow: hidden !important; }
+.media-cover-img { border: 0 !important; outline: 0 !important; box-shadow: none !important; border-radius: 10px !important; background: none !important; width: 100% !important; height: 100% !important; object-fit: cover; display: block; }
+
+/* mapa: barra superior en MODO CLARO (pedido de Javiera) — vidrio blanco de iOS sobre el mapa claro */
+.map-search-input-box, .hud-btn-center, .hud-btn-icon, .map-search-dropdown {
+  background: rgba(255, 255, 255, .88) !important; color: #1c1c1e !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .14), 0 0 0 .5px rgba(0, 0, 0, .06) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important; -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+}
+.map-search-input-box svg { color: #8e8e93 !important; }
+.map-search-input-box input { color: #1c1c1e !important; font: 400 17px var(--text) !important; }
+.map-search-input-box input::placeholder { color: #8e8e93 !important; }
+.btn-clear-search { color: #8e8e93 !important; background: none !important; }
+.hud-btn-center, .hud-btn-icon { color: var(--ios-blue) !important; border-radius: 50% !important; }
+.hud-btn-icon:not(.voice-active) { color: #8e8e93 !important; }
+.map-search-dropdown, .map-search-dropdown * { color: #1c1c1e !important; }
+.map-search-dropdown .search-item-info, .map-search-dropdown .search-item-dist, .map-search-dropdown .search-item-commune { color: #6e6e73 !important; }
+.map-search-dropdown .search-item-row + .search-item-row { border-color: rgba(60, 60, 67, .18) !important; }
+
+/* =============================================================================
+   TIPOGRAFÍA iOS EXACTA (Dynamic Type, tamaño «Grande» por defecto) — Kotone 2026-10-31.
+   Inter 4 trae eje óptico (opsz 14–32): con font-optical-sizing:auto pasa sola de «Text» a «Display»
+   según el tamaño, como SF Pro. Espaciado por talla = tabla de tracking de SF Pro (HIG de Apple):
+   34:+0.40 · 28:+0.38 · 22:−0.26 · 20:−0.45 · 17:−0.43 · 16:−0.31 · 15:−0.23 · 13:−0.08 · 12:0 · 11:+0.06 (pt).
+   ============================================================================= */
+html, body, button, input, select, textarea, svg text { font-optical-sizing: auto !important; font-kerning: normal; }
+.ios-large-title, #tab-sensors .lcd-brand, #tab-history .lcd-brand, #tab-settings .lcd-brand {
+  font: 700 34px/41px var(--display) !important; letter-spacing: 0.012em !important; }
+.lcd-top-bar .lcd-brand { font: 600 17px/22px var(--text) !important; letter-spacing: -0.025em !important; }
+/* Headline 17 semibold */
+.settings-title, .settings-item-title, .dev-name, .sensor-name-col, .search-item-name, .empty-history-title,
+.media-track-title, .lcd-modal-title, #history-container .lcd-card span[style*="font-size: 11px"] {
+  font: 600 17px/22px var(--text) !important; letter-spacing: -0.025em !important; }
+/* Body 17 */
+.meta-label, .meta-val, .map-search-input-box input, .strava-input { font-size: 17px !important; line-height: 22px !important; letter-spacing: -0.025em !important; }
+.meta-val { font-weight: 400 !important; }
+.btn-cockpit, .btn-record-start, .btn-horn { font: 600 17px/22px var(--text) !important; letter-spacing: -0.025em !important; }
+/* Subheadline 15 */
+.settings-desc, .settings-item-desc, .media-artist-name, .lcd-modal-body, .search-item-info, .empty-history-sub {
+  font: 400 15px/20px var(--text) !important; letter-spacing: -0.015em !important; }
+.btn-settings-action, .btn-settings-action.cyan, .btn-lcd-mini, .btn-lcd-action, .btn-detail-action, .btn-modal-confirm, .btn-modal-cancel {
+  font: 600 15px/20px var(--text) !important; letter-spacing: -0.015em !important; }
+/* Footnote 13 */
+.lcd-silk-hint, .dev-meta, .sensor-mac, .dev-credit-author, #tab-sensors .device-list-lcd > div:not([class]), .app-notice,
+.indicator-val, .terrain-unit, .trip-cell-unit, .odo-box-unit, .det-unit {
+  font-size: 13px !important; line-height: 18px !important; letter-spacing: -0.006em !important; }
+.indicator-val { font-weight: 600 !important; }
+/* Caption 1 · 12 (encabezados de tarjeta, como el Tiempo de iOS: semibold, mayúsculas) */
+.card-section-title, .terrain-gauge-title, .trip-cell-label, .odo-box-label, .sensor-card-title, .settings-header-tag,
+.det-lbl, .media-source-tag, .speed-digital-unit, .telltale-item, .telltale-gear {
+  font-size: 12px !important; line-height: 16px !important; letter-spacing: 0 !important; }
+.cluster-terrain-console .terrain-gauge-title, .cluster-digital-trip-bar .trip-cell-label { font-size: 11px !important; letter-spacing: 0.005em !important; }
+/* Caption 2 · 11 */
+.media-live-status, .badge-status-active, .sensor-honest-badge, .hist-strava, .trip-cell-badge,
+#history-container .lcd-card span[style*="font-size: 8px"], #history-container .lcd-card div[style*="font-size: 7px"], #history-container .lcd-card div[style*="font-size: 6.5px"] {
+  font-size: 11px !important; line-height: 13px !important; letter-spacing: 0.005em !important; }
+/* barra de pestañas: 10 medium, como UITabBar */
+.nav-tab-label { font: 500 10px/12px var(--text) !important; letter-spacing: 0.01em !important; }
+/* cifras: Display, tracking negativo en grande como la temperatura del Tiempo */
+.speed-dseg-cell .dseg-live { letter-spacing: -0.04em !important; }
+.terrain-val, .trip-cell-val, #history-container .lcd-card div[style*="font-size: 13px"] { font-weight: 400 !important; letter-spacing: -0.02em !important; }
+.odo-mechanical-window .odo-drum-wheel .odo-digit-strip span { letter-spacing: 0 !important; }
+/* navegación: como Mapas de Apple */
+.nav-instruction-dist { font: 700 28px/34px var(--display) !important; letter-spacing: 0.013em !important; }
+.nav-instruction-street { font: 400 17px/22px var(--text) !important; letter-spacing: -0.025em !important; }
+.nav-stat-val { font: 600 20px/25px var(--display) !important; letter-spacing: -0.022em !important; }
+.nav-stat-lbl { font: 400 13px/18px var(--text) !important; text-transform: none !important; }
+
+/* velocímetro: se dimensiona por la ALTURA disponible (en el teléfono la pantalla útil es más baja) */
+.lcd-speedometer-box { display: flex !important; flex-direction: column !important; overflow: hidden; }
+.cluster-gauge-container { flex: 1 1 0 !important; min-height: 0 !important; height: auto !important; width: auto !important;
+  max-width: 100% !important; max-height: 290px !important; aspect-ratio: 360 / 252 !important; align-self: center !important; margin: 4px auto 0 !important; }
+/* barra superior: separación real entre indicadores (la brújula se pegaba a la temperatura) */
+.lcd-status-indicators { gap: 9px !important; flex-wrap: nowrap !important; }
+.indicator-item { padding: 0 !important; margin: 0 !important; width: auto !important; min-width: 0 !important; flex: 0 0 auto !important; }
+.item-compass .indicator-val { min-width: 0 !important; width: auto !important; }
+/* visor digital: aire entre el punto y el decimal (estaba pegado) */
+.speed-dseg-dot { margin: 0 2px 0 2px !important; }
+.speed-dseg-dot .dseg-live { letter-spacing: 0 !important; }
+.speed-dseg-cell:last-child { margin-left: 1px !important; }
+/* visor digital con tres cifras (100–120 km/h): misma caja, cifra más chica para que «120.0» quepa holgado */
+.cluster-speed-digital-hub.tres-cifras .speed-dseg-cell .dseg-live { font-size: 54px !important; }
+.cluster-speed-digital-hub.tres-cifras .speed-dseg-dot .dseg-live,
+.cluster-speed-digital-hub.tres-cifras .speed-dseg-cell:last-child .dseg-live { font-size: 26px !important; }
+
+/* barra inferior de navegación (como Mapas de iOS): 4 cifras en columnas iguales + «Salir» */
+.nav-hud-bottom { align-items: center !important; gap: 6px !important; padding: 12px 12px 12px 16px !important;
+  background: rgba(28, 28, 30, .92) !important; }
+.nav-hud-bottom .nav-stat-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+.nav-hud-bottom .nav-stat-val { font: 600 19px/23px var(--display) !important; color: #fff !important; white-space: nowrap; letter-spacing: -0.02em !important; }
+.nav-hud-bottom .nav-stat-lbl { font: 400 12px/15px var(--text) !important; color: var(--txt-dim) !important; white-space: nowrap; text-transform: none !important; }
+.nav-hud-bottom .btn-end-nav { flex: 0 0 auto; background: var(--ios-red) !important; color: #fff !important; border-radius: 999px !important; padding: 9px 16px !important; font: 600 15px var(--text) !important; }
+.nav-hud-top { background: rgba(28, 28, 30, .92) !important; }
+
+/* =============================================================================
+   NAVEGACIÓN: CONTRASTE (Kotone 2026-10-31). Antes: vidrio oscuro translúcido sobre mapa claro = gris medio,
+   textos secundarios ilegibles. Ahora, como Mapas de iOS:
+   · maniobra arriba: placa SÓLIDA oscura, flecha y distancia blanco puro, instrucción blanco 85 % (≥ 12:1)
+   · resumen abajo: tarjeta BLANCA sólida, cifras negras, rótulos gris iOS #6E6E73 (≥ 5:1), «Salir» rojo sistema
+   ============================================================================= */
+.nav-hud-top {
+  background: #1C1C1E !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .35) !important; border: 0 !important;
+}
+.nav-hud-top .nav-maneuver-icon { background: transparent !important; color: #fff !important; }
+.nav-hud-top .nav-maneuver-icon svg { stroke: #fff !important; width: 34px; height: 34px; stroke-width: 2.8; }
+.nav-hud-top .nav-instruction-dist { color: #fff !important; }
+.nav-hud-top .nav-instruction-street { color: rgba(255, 255, 255, .85) !important; font-weight: 500 !important; }
+.nav-hud-top .btn-cancel-nav { background: rgba(255, 255, 255, .16) !important; color: #fff !important; }
+
+.nav-hud-bottom {
+  background: #FFFFFF !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .22) !important; border: 0 !important;
+}
+.nav-hud-bottom .nav-stat-val { color: #000 !important; }
+.nav-hud-bottom .nav-stat-lbl { color: #6E6E73 !important; }
+.nav-hud-bottom #nav-hud-ciclo-val { color: #248A3D !important; }        /* verde iOS oscuro: legible sobre blanco */
+.nav-hud-bottom .btn-end-nav { background: #FF3B30 !important; color: #fff !important; }
+
+/* globo del destino (Leaflet) en la misma tipografía */
+.leaflet-popup-content-wrapper { border-radius: 12px !important; font: 400 15px var(--text) !important; color: #000 !important; }
+.leaflet-popup-content b { font-weight: 600; }
+
+/* =============================================================================
+   NAVEGACIÓN · TAMAÑOS (como Mapas de iOS)
+   ============================================================================= */
+.nav-hud-top { padding: 14px 14px 14px 12px !important; gap: 12px !important; min-height: 84px; }
+.nav-hud-top .nav-maneuver-icon { width: 52px !important; height: 52px !important; flex: 0 0 52px; display: flex; align-items: center; justify-content: center; }
+.nav-hud-top .nav-maneuver-icon svg { width: 44px !important; height: 44px !important; }
+.nav-hud-top .nav-instruction-dist { font: 700 34px/38px var(--display) !important; letter-spacing: 0.01em !important; }
+.nav-hud-top .nav-instruction-street { font: 500 20px/24px var(--text) !important; letter-spacing: -0.02em !important; margin-top: 2px; }
+.nav-hud-top .btn-cancel-nav { width: 36px !important; height: 36px !important; font-size: 17px !important; flex: 0 0 36px; }
+
+/* barra inferior: fila de 3 cifras centradas + fila con % de ciclovía y «Salir» */
+.nav-hud-bottom:not([style*="none"]) { display: grid !important; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: auto auto; row-gap: 12px !important; column-gap: 4px !important;
+  padding: 14px 16px 14px !important; }
+.nav-hud-bottom .nav-stat-col { align-items: center !important; text-align: center; }
+.nav-hud-bottom .nav-stat-val { font: 600 22px/26px var(--display) !important; letter-spacing: -0.02em !important; }
+.nav-hud-bottom .nav-stat-lbl { font: 400 13px/17px var(--text) !important; margin-top: 1px; }
+.nav-hud-bottom #nav-hud-ciclo { grid-column: 1 / 3; grid-row: 2; flex-direction: row !important; align-items: center !important; justify-content: flex-start;
+  gap: 6px; background: rgba(52, 199, 89, .14); border-radius: 999px; padding: 6px 12px; justify-self: start; }
+.nav-hud-bottom #nav-hud-ciclo .nav-stat-val { font: 600 15px/20px var(--text) !important; color: #248A3D !important; }
+.nav-hud-bottom #nav-hud-ciclo .nav-stat-lbl { font: 500 15px/20px var(--text) !important; color: #248A3D !important; margin: 0; }
+.nav-hud-bottom .btn-end-nav { grid-column: 3; grid-row: 2; justify-self: end; font: 600 17px/22px var(--text) !important; padding: 8px 22px !important; }
+/* la instrucción ocupa sólo el espacio libre (antes empujaba el ✕ fuera de la placa) */
+.nav-hud-top:not([style*="none"]) { display: flex !important; } .nav-hud-top { align-items: center !important; box-sizing: border-box; overflow: hidden; }
+.nav-hud-top .nav-instruction-wrap { flex: 1 1 auto !important; min-width: 0 !important; }
+.nav-hud-top .nav-instruction-street { white-space: normal !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nav-hud-top .btn-cancel-nav { flex: 0 0 36px !important; position: static !important; margin: 0 !important; }
+
+/* Sensores: lista agrupada de iOS (ícono de color, nombre en una línea, detalle, estado a la derecha) */
+#tab-sensors { padding: 0 16px 16px !important; }
+#tab-sensors .lcd-top-bar { padding: 8px 0 6px !important; margin-bottom: 4px !important; }
+#tab-sensors .lcd-card { padding: 0 !important; margin: 0 0 22px !important; }
+#tab-sensors .card-section-title { display: block !important; padding: 0 4px 7px !important; margin: 0 !important; background: none !important; font: 400 13px var(--text) !important; color: var(--txt-dim) !important; text-transform: uppercase; letter-spacing: .02em !important; }
+#tab-sensors .device-list-lcd, #tab-sensors #discovered-devices-list { background: var(--glass); border-radius: 12px; overflow: hidden; gap: 0 !important; padding: 0 !important; }
+#tab-sensors .lcd-card { background: none !important; box-shadow: none !important; backdrop-filter: none !important; }
+.sensor-fila { display: flex !important; align-items: center !important; gap: 12px !important; padding: 10px 14px !important; min-height: 60px; border: 0 !important; background: none !important; position: relative; }
+.sensor-fila + .sensor-fila::before { content: ""; position: absolute; top: 0; left: 58px; right: 0; height: .5px; background: var(--sep); }
+.sensor-ic { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; flex: 0 0 32px; }
+.sensor-ic svg { width: 19px; height: 19px; }
+.sensor-tx { flex: 1; min-width: 0; }
+.sensor-tx .dev-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: 400 17px/22px var(--text) !important; letter-spacing: -.025em !important; }
+.sensor-tx .dev-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font: 400 13px/18px var(--text) !important; }
+.sensor-fila .sensor-honest-badge { flex: 0 0 auto; font: 500 13px var(--text) !important; padding: 3px 10px !important; }
+.sensor-honest-badge.connected, .sensor-honest-badge.conectado { background: rgba(48, 209, 88, .2) !important; color: #30D158 !important; }
+.sensor-fila .btn-lcd-mini { flex: 0 0 auto; padding: 6px 14px !important; }
+.sensor-vacio { padding: 16px; text-align: center; font: 400 15px/20px var(--text); color: var(--txt-dim); }
+
+/* Botón play/pausa: círculo e ícono centrados (31-10-2026). El <span> en línea agregaba espacio de línea, el botón
+   traía relleno por defecto del WebView y el triángulo de play tiene su peso visual a la izquierda de su caja. */
+.btn-transport-mini { padding: 0 !important; flex: 0 0 auto !important; }
+.btn-transport-mini.btn-transport-play { aspect-ratio: 1 / 1 !important; flex: 0 0 40px !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+.btn-transport-mini > span:not([style*="none"]) { display: flex !important; align-items: center !important; justify-content: center !important; line-height: 0 !important; }
+.btn-transport-mini svg { display: block !important; }
+.btn-transport-play svg:has(polygon[points^="5 3"]) { transform: translateX(1.5px); }

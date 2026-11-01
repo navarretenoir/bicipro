@@ -1,0 +1,1 @@
+Ciclocomputador con mapas sin conexión de Chile, sensores BLE y rutas.

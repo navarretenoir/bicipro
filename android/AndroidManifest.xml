@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Permisos de Hardware, Sensores y Conectividad -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    
+    <!-- Permisos Bluetooth para Sensores, E-Bike y Control Remoto -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    
+    <!-- Control de Volumen, Llamadas y Mensajes (avisos de llamadas y mensajes durante la ruta) -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Now Bar de Samsung = Live Updates de Android 16 (notificaciones «promovidas»); permiso normal -->
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+
+    <!-- Enlace con Clima y Metro (Kotone 2026-10-31): permiso de FIRMA compartido (declarado igual en
+         las tres apps para que el orden de instalación no importe) + visibilidad de paquetes. -->
+    <permission android:name="org.kotone.clima.permission.ALERTAS"
+        android:label="Alertas de Clima" android:protectionLevel="signature" />
+    <uses-permission android:name="org.kotone.clima.permission.ALERTAS" />
+    <queries>
+        <package android:name="org.kotone.clima" />
+        <package android:name="org.kotone.metro" />
+    </queries>
+
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="true" />
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+
+    <application
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="@style/AppTheme"
+        android:hardwareAccelerated="true"
+        android:extractNativeLibs="true"
+        android:allowBackup="true">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|density|uiMode"
+            android:resizeableActivity="true"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize">
+            
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Kotone 2026-10-31: ubicaciones desde otras apps (WhatsApp, Maps, Contactos…) → navegar en bici offline -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="geo" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="google.navigation" />
+            </intent-filter>
+            <intent-filter android:label="Navegar en bici">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <!-- Kotone 2026-10-30: retorno de la autorización OAuth de Strava -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="bicipro" android:host="localhost" android:path="/strava" />
+            </intent-filter>
+        </activity>
+
+        <!-- Alias Dinámico para Modo Launcher del Sistema (Permite encender y apagar el modo launcher a voluntad) -->
+        <activity-alias
+            android:name=".LauncherAlias"
+            android:targetActivity=".MainActivity"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Servicio en Primer Plano para Telemetría y Conexión Bluetooth Permanente -->
+        <service
+            android:name=".AdoKeepAliveService"
+            android:foregroundServiceType="location|connectedDevice"
+            android:exported="false" />
+
+        <!-- Listener de Notificaciones y MediaSession para el control en vivo del reproductor -->
+        <service
+            android:name=".BiciProMediaListener"
+            android:label="BiciPRO · Multimedia"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- Receptor de Autoarranque al encender el Teléfono -->
+        <receiver
+            android:name=".AdoBootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Empujes de alertas desde Clima y Metro (sólo emisores con la misma firma) -->
+        <receiver android:name=".Enlace$Receptor" android:exported="true"
+            android:permission="org.kotone.clima.permission.ALERTAS">
+            <intent-filter>
+                <action android:name="org.kotone.clima.ALERTA" />
+                <action android:name="org.kotone.metro.ALERTA" />
+            </intent-filter>
+        </receiver>
+
+        <!-- ContentProvider para compartir GPX con Strava y apps de ciclismo (Android 14+) -->
+        <provider
+            android:name=".BiciProContentProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="true"
+            android:grantUriPermissions="true" />
+
+    </application>
+</manifest>

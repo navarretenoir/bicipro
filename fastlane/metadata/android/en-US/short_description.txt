@@ -1,0 +1,1 @@
+Cycling computer with offline Chile maps, BLE sensors and ride recording.

@@ -1,0 +1,8 @@
+build/
+.gradle/
+local.properties
+*.apk
+*.bak*
+mapas/bin/
+mapas/*.pmtiles
+mapas/segments/

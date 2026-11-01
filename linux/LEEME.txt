@@ -1,0 +1,2 @@
+BiciPRO (escritorio) — tablero de ciclocomputador con GPS, ruta y mapa. Desarrollada por Javiera Navarrete.
+Los sensores Bluetooth y la navegacion sin conexion con mapas de Chile estan en la app para Android.

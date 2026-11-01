@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.navarretenoir.BiciPRO</id>
+  <name>BiciPRO</name>
+  <summary>Tablero de ciclocomputador con GPS, ruta y mapa</summary>
+  <summary xml:lang="en">Cycling computer dashboard with GPS, route and map</summary>
+  <developer id="io.github.navarretenoir"><name>Javiera Navarrete</name></developer>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <description>
+    <p>Versión de escritorio de BiciPRO: el tablero del ciclocomputador (velocímetro, distancia, pendiente, tiempos), la grabación de rutas y el historial, usando la ubicación de tu equipo. Los sensores Bluetooth (centralitas de bicicletas eléctricas, pulsómetros, cadencia y potencia) y la navegación con mapas de Chile sin conexión están en la app para Android.</p>
+    <p xml:lang="en">Desktop version of BiciPRO: the cycling-computer dashboard (speedometer, distance, slope, timers), ride recording and history, using your computer's location. Bluetooth sensors (e-bike controllers, heart-rate, cadence and power) and offline navigation with Chile maps are in the Android app.</p>
+    <p>Desarrollada por Javiera Navarrete. / Developed by Javiera Navarrete.</p>
+  </description>
+  <url type="homepage">https://github.com/navarretenoir/bicipro</url>
+  <url type="bugtracker">https://github.com/navarretenoir/bicipro/issues</url>
+  <launchable type="desktop-id">io.github.navarretenoir.BiciPRO.desktop</launchable>
+  <provides><binary>bicipro</binary></provides>
+  <categories><category>Utility</category><category>Sports</category></categories>
+  <content_rating type="oars-1.1"/>
+  <releases><release version="1.0.1" date="2026-11-02"/></releases>
+</component>

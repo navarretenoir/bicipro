@@ -6,3 +6,5 @@ local.properties
 mapas/bin/
 mapas/*.pmtiles
 mapas/segments/
+desktop/bicipro
+herramientas/linux-pkg/runtime-x86_64

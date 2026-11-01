@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=BiciPRO
+GenericName=Ciclocomputador
+Comment=Tablero de ciclocomputador: velocidad por GPS, ruta y mapa
+Comment[en]=Cycling computer dashboard: GPS speed, route and map
+Exec=bicipro
+Icon=io.github.navarretenoir.BiciPRO
+Terminal=false
+Categories=Utility;Sports;Maps;
+Keywords=bici;ciclismo;gps;ruta;ciclocomputador;cycling;bike;
+StartupWMClass=io.github.navarretenoir.BiciPRO
+X-Developer=Javiera Navarrete

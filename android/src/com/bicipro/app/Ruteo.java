@@ -45,6 +45,92 @@ public class Ruteo {
     static File dirSegmentos(Activity a) { return new File(a.getExternalFilesDir(null), "segments"); }
     static File archivoMapa(Activity a) { return new File(new File(a.getExternalFilesDir(null), "mapas"), "chile.pmtiles"); }
 
+
+    // ------------------------------------------------------------------ descarga de los mapas de Chile (primer uso)
+    // Los datos (1,2 GB) viven en una release pública del repositorio; se bajan con reanudación y se verifican con SHA-256.
+    private static final String BASE = "https://github.com/navarretenoir/bicipro/releases/download/mapas-20261031/";
+    private static final String[][] ARCH = {   // nombre, bytes, sha256
+        {"chile.pmtiles", "1136902024", "82cb17ea9a1e2162e91cab42696dbd8475f8ff00b52a2cf983c8c8ea78060fe1"},
+        {"segmentos-brouter.zip", "122423210", "e002e6fb331096b5783bba66fc43e102f9d10c267d73e4152ec745e9f77582da"}};
+    private volatile boolean bajando = false, cancelar = false;
+    private volatile String msg = "";
+    private volatile long hechos = 0;
+
+    @JavascriptInterface
+    public String descarga() {
+        long total = 0; for (String[] a : ARCH) total += Long.parseLong(a[1]);
+        try { return new JSONObject().put("activa", bajando).put("hechos", hechos).put("total", total).put("mensaje", msg).toString(); }
+        catch (Exception e) { return "{}"; }
+    }
+
+    @JavascriptInterface
+    public void cancelarDescarga() { cancelar = true; }
+
+    @JavascriptInterface
+    public void descargarMapas() {
+        if (bajando) return;
+        bajando = true; cancelar = false; msg = "Conectando…"; hechos = 0;
+        new Thread(() -> {
+            try {
+                File base = act.getExternalFilesDir(null);
+                for (String[] a : ARCH) {
+                    File dst = a[0].endsWith(".zip") ? new File(base, "descargas/" + a[0]) : new File(new File(base, "mapas"), a[0]);
+                    if (a[0].endsWith(".pmtiles") && dst.isFile() && dst.length() == Long.parseLong(a[1])) { hechos += dst.length(); continue; }
+                    bajar(BASE + a[0], dst, Long.parseLong(a[1]), a[2]);
+                    if (a[0].endsWith(".zip")) { extraer(dst, dirSegmentos(act)); dst.delete(); }
+                }
+                msg = "Mapas instalados";
+                js("window.onMapasInstalados&&onMapasInstalados()");
+            } catch (Exception e) {
+                msg = cancelar ? "Descarga cancelada" : "Error: " + e.getMessage() + " (puedes reanudar)";
+            } finally { bajando = false; }
+        }).start();
+    }
+
+    private void bajar(String url, File dst, long total, String sha) throws Exception {
+        dst.getParentFile().mkdirs();
+        File parcial = new File(dst.getPath() + ".parcial");
+        long ya = parcial.isFile() ? parcial.length() : 0;
+        if (ya > total) { parcial.delete(); ya = 0; }
+        long baseHechos = hechos;
+        if (ya < total) {
+            java.net.HttpURLConnection c = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
+            c.setConnectTimeout(20000); c.setReadTimeout(30000);
+            if (ya > 0) c.setRequestProperty("Range", "bytes=" + ya + "-");
+            int cod = c.getResponseCode();
+            if (cod == 200) ya = 0;                         // el servidor ignoró el rango: empezar de cero
+            else if (cod != 206) throw new Exception("HTTP " + cod);
+            msg = "Descargando " + dst.getName();
+            try (java.io.InputStream in = c.getInputStream(); java.io.FileOutputStream out = new java.io.FileOutputStream(parcial, ya > 0)) {
+                byte[] b = new byte[65536]; int n; long suma = ya;
+                while ((n = in.read(b)) > 0) {
+                    if (cancelar) throw new Exception("cancelada");
+                    out.write(b, 0, n); suma += n; hechos = baseHechos + suma;
+                }
+            }
+        }
+        msg = "Verificando " + dst.getName();
+        java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+        try (java.io.FileInputStream in = new java.io.FileInputStream(parcial)) { byte[] b = new byte[65536]; int n; while ((n = in.read(b)) > 0) md.update(b, 0, n); }
+        StringBuilder h = new StringBuilder(); for (byte x : md.digest()) h.append(String.format("%02x", x));
+        if (!h.toString().equals(sha)) { parcial.delete(); throw new Exception("archivo dañado, vuelve a intentar"); }
+        if (dst.exists()) dst.delete();
+        if (!parcial.renameTo(dst)) throw new Exception("no se pudo guardar el archivo");
+        hechos = baseHechos + total;
+    }
+
+    private void extraer(File zip, File destino) throws Exception {
+        destino.mkdirs(); msg = "Instalando rutas…";
+        try (java.util.zip.ZipInputStream z = new java.util.zip.ZipInputStream(new java.io.FileInputStream(zip))) {
+            java.util.zip.ZipEntry e;
+            while ((e = z.getNextEntry()) != null) {
+                String n = new File(e.getName()).getName();                   // sin rutas: evita escapar de la carpeta
+                if (!n.endsWith(".rd5")) continue;
+                try (java.io.FileOutputStream o = new java.io.FileOutputStream(new File(destino, n))) { byte[] b = new byte[65536]; int k; while ((k = z.read(b)) > 0) o.write(b, 0, k); }
+            }
+        }
+    }
+
     /** Estado de los datos offline, para la interfaz. */
     @JavascriptInterface
     public String estado() {

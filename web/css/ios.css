@@ -518,3 +518,11 @@ html, body, button, input, select, textarea, svg text { font-optical-sizing: aut
 .btn-transport-mini > span:not([style*="none"]) { display: flex !important; align-items: center !important; justify-content: center !important; line-height: 0 !important; }
 .btn-transport-mini svg { display: block !important; }
 .btn-transport-play svg:has(polygon[points^="5 3"]) { transform: translateX(1.5px); }
+
+/* Velocímetro con tamaño mínimo SOLO en escritorio (puntero fino): en ventanas bajas ya no se encoge para que todo quepa en la pantalla;
+ * la cabina se desplaza. En el teléfono (táctil) no cambia nada: el velocímetro sigue ocupando el espacio disponible. */
+@media (hover: hover) and (pointer: fine) {
+  #unified-cockpit { overflow-y: auto !important; overflow-x: hidden !important; }
+  .lcd-speedometer-box { flex: 1 0 auto !important; min-height: 268px !important; }
+  .lcd-speedometer-box .cluster-gauge-container { min-height: 214px !important; }
+}

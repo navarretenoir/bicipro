@@ -23,5 +23,5 @@
   <provides><binary>bicipro</binary></provides>
   <categories><category>Utility</category><category>Sports</category></categories>
   <content_rating type="oars-1.1"/>
-  <releases><release version="1.0.1" date="2026-11-02"/></releases>
+  <releases><release version="1.0.2" date="2026-11-02"/><release version="1.0.1" date="2026-11-02"/></releases>
 </component>

@@ -13,7 +13,12 @@
     <p>Desarrollada por Javiera Navarrete. / Developed by Javiera Navarrete.</p>
   </description>
   <url type="homepage">https://github.com/navarretenoir/bicipro</url>
+  <url type="vcs-browser">https://gitlab.com/navarretenoir/bicipro</url>
   <url type="bugtracker">https://github.com/navarretenoir/bicipro/issues</url>
+  <screenshots>
+    <screenshot type="default"><image>https://raw.githubusercontent.com/navarretenoir/bicipro/main/screenshots/1.png</image></screenshot>
+    <screenshot><image>https://raw.githubusercontent.com/navarretenoir/bicipro/main/screenshots/2.png</image></screenshot>
+  </screenshots>
   <launchable type="desktop-id">io.github.navarretenoir.BiciPRO.desktop</launchable>
   <provides><binary>bicipro</binary></provides>
   <categories><category>Utility</category><category>Sports</category></categories>
